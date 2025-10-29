@@ -1,7 +1,9 @@
 package com.example.CaseStudy.util;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.example.CaseStudy.exception.TokenValidationException;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SignatureException;
+
 import java.util.Date;
 
 public class JwtUtil {
@@ -18,10 +20,23 @@ public class JwtUtil {
     }
 
     public static String validateToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        try {
+            return Jwts.parser()
+                    .setSigningKey(SECRET_KEY)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (ExpiredJwtException e) {
+            throw new TokenValidationException("JWT has expired");
+        } catch (UnsupportedJwtException e) {
+            throw new TokenValidationException("Unsupported JWT token");
+        } catch (MalformedJwtException e) {
+            throw new TokenValidationException("Malformed JWT token");
+        } catch (SignatureException e) {
+            throw new TokenValidationException("Invalid JWT signature");
+        } catch (IllegalArgumentException e) {
+            throw new TokenValidationException("JWT token is missing or empty");
+        }
     }
+
 }

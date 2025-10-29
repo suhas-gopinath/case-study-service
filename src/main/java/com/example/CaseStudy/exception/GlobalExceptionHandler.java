@@ -1,8 +1,10 @@
 package com.example.CaseStudy.exception;
 
+import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -41,9 +43,14 @@ public class GlobalExceptionHandler {
         return buildResponseEntity(exception.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<Object> handleMissingHeader(MissingRequestHeaderException ex) {
+        return buildResponseEntity("Missing Authorization header", HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAllExceptions(Exception exception) {
-        return buildResponseEntity("Internal server error: " + exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return buildResponseEntity("Internal server error: ", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
 

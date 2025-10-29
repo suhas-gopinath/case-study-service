@@ -8,14 +8,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${app.cors.allowed-origins}")
-    private String[] allowedOrigins;
+    @Value("${app.cors.allowed-mf1}")
+    private String allowedMf1;
+
+    @Value("${app.cors.allowed-mf2}")
+    private String allowedMf2;
+
+    @Value("${app.cors.allowed-mf-container}")
+    private String allowedMfContainer;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        String[] allowedOrigins = { allowedMf1, allowedMf2, allowedMfContainer };
         registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOriginPatterns(allowedOrigins)
+                .allowedMethods("GET", "POST")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
