@@ -26,7 +26,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<Message> registerUser(@Valid @RequestBody UserRequest request) {
         logger.info("Received registration request for username: {}", request.getUsername());
-        User newUser = userService.registerUser(request);
+        userService.registerUser(request);
         return new ResponseEntity<>(new Message("User Registered Successfully"), HttpStatus.CREATED);
     }
 
