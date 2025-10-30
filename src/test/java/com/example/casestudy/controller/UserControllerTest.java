@@ -7,7 +7,9 @@ import com.example.casestudy.service.UserService;
 import com.example.casestudy.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -19,68 +21,64 @@ class UserControllerTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private JwtUtil jwtUtil;
+
     @InjectMocks
     private UserController userController;
-
-    @Captor
-    private ArgumentCaptor<UserRequest> userRequestCaptor;
-
-    private UserRequest request;
-    private User user;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        request = new UserRequest();
-        request.setUsername("testuser");
-        request.setPassword("testpass");
-
-        user = new User();
-        user.setUsername("testuser");
-        user.setPasswordHash("hashedPassword");
     }
 
     @Test
     void testRegisterUser_Success() {
-        when(userService.registerUser(any(UserRequest.class))).thenReturn(user);
+        UserRequest request = new UserRequest();
+        request.setUsername("testUser");
+        request.setPassword("password");
+
+        User mockUser = new User();
+        mockUser.setUsername("testUser");
+
+        when(userService.registerUser(request)).thenReturn(mockUser);
 
         ResponseEntity<MessageDto> response = userController.registerUser(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("User Registered Successfully", response.getBody().getMessage());
-
-        verify(userService, times(1)).registerUser(userRequestCaptor.capture());
-        assertEquals("testuser", userRequestCaptor.getValue().getUsername());
+        verify(userService, times(1)).registerUser(request);
     }
 
     @Test
     void testLoginUser_Success() {
-        when(userService.authenticateUser("testuser", "testpass")).thenReturn(user);
-        try (MockedStatic<JwtUtil> mockedJwt = mockStatic(JwtUtil.class)) {
-            mockedJwt.when(() -> JwtUtil.generateToken("testuser")).thenReturn("mockedToken");
+        UserRequest request = new UserRequest();
+        request.setUsername("testUser");
+        request.setPassword("password");
 
-            ResponseEntity<MessageDto> response = userController.loginUser(request);
+        User mockUser = new User();
+        mockUser.setUsername("testUser");
 
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals("mockedToken", response.getBody().getMessage());
-            verify(userService, times(1)).authenticateUser("testuser", "testpass");
-        }
+        when(userService.authenticateUser("testUser", "password")).thenReturn(mockUser);
+        when(jwtUtil.generateToken("testUser")).thenReturn("mockToken123");
+
+        ResponseEntity<MessageDto> response = userController.loginUser(request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("mockToken123", response.getBody().getMessage());
+        verify(userService, times(1)).authenticateUser("testUser", "password");
+        verify(jwtUtil, times(1)).generateToken("testUser");
     }
 
     @Test
     void testVerify_Success() {
-        String token = "mockedToken";
-        String username = "testuser";
+        String token = "Bearer mockToken123";
+        when(jwtUtil.validateToken("mockToken123")).thenReturn("testUser");
 
-        try (MockedStatic<JwtUtil> mockedJwt = mockStatic(JwtUtil.class)) {
-            mockedJwt.when(() -> JwtUtil.validateToken(token)).thenReturn(username);
+        ResponseEntity<MessageDto> response = userController.verify(token);
 
-            ResponseEntity<MessageDto> response = userController.verify("Bearer " + token);
-
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals("Successfully verified user: testuser", response.getBody().getMessage());
-            mockedJwt.verify(() -> JwtUtil.validateToken(token), times(1));
-        }
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Successfully verified user: testUser", response.getBody().getMessage());
+        verify(jwtUtil, times(1)).validateToken("mockToken123");
     }
 }

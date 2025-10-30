@@ -1,32 +1,34 @@
 package com.example.casestudy.util;
 
+import com.example.casestudy.config.JwtConfig;
 import com.example.casestudy.exception.TokenValidationException;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.SignatureException;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
+@Component
 public class JwtUtil {
-    private static final String SECRET_KEY = "m3UjaLTuZyPZL5Hzs7e3UfG7FZT7C8jcDq5B8wXSmFI=";
-    private static final long EXPIRATION_TIME = 1800000;
 
-    private JwtUtil() {
-        throw new UnsupportedOperationException("Utility class");
+    private final JwtConfig jwtConfig;
+
+    public JwtUtil(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
     }
 
-    public static String generateToken(String username) {
+    public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpirationTime()))
+                .signWith(SignatureAlgorithm.HS256, jwtConfig.getSecretKey())
                 .compact();
     }
 
-    public static String validateToken(String token) {
+    public String validateToken(String token) {
         try {
             return Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
+                    .setSigningKey(jwtConfig.getSecretKey())
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
@@ -42,5 +44,4 @@ public class JwtUtil {
             throw new TokenValidationException("JWT token is missing or empty");
         }
     }
-
 }

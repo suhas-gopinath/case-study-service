@@ -19,8 +19,11 @@ public class UserController {
     private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    public UserController(UserService userService) {
+    private final JwtUtil jwtUtils;
+
+    public UserController(UserService userService, JwtUtil jwtUtils) {
         this.userService = userService;
+        this.jwtUtils = jwtUtils;
     }
 
     @PostMapping("/register")
@@ -34,14 +37,14 @@ public class UserController {
     public ResponseEntity<MessageDto> loginUser(@RequestBody UserRequest request) {
         logger.info("Received login request for username: {}", request.getUsername());
         User user = userService.authenticateUser(request.getUsername(), request.getPassword());
-        String token = JwtUtil.generateToken(user.getUsername());
+        String token = jwtUtils.generateToken(user.getUsername());
         return new ResponseEntity<>(new MessageDto(token), HttpStatus.OK);
     }
 
     @GetMapping("/verify")
     public ResponseEntity<MessageDto> verify(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
-        String username = JwtUtil.validateToken(token);
+        String username = jwtUtils.validateToken(token);
         return ResponseEntity.ok(new MessageDto("Successfully verified user: " + username));
     }
 }
