@@ -8,6 +8,7 @@ class CaseStudyApplicationTests {
 
 	@Test
 	void contextLoads() {
+        assert true;
 	}
 
 }
