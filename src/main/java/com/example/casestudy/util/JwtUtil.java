@@ -10,6 +10,10 @@ public class JwtUtil {
     private static final String SECRET_KEY = "m3UjaLTuZyPZL5Hzs7e3UfG7FZT7C8jcDq5B8wXSmFI=";
     private static final long EXPIRATION_TIME = 1800000;
 
+    private JwtUtil() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     public static String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
