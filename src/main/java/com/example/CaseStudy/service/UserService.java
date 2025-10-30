@@ -33,11 +33,6 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Registers a new user.
-     * Throws UserAlreadyExistsException if username exists.
-     * Throws InvalidInputException for hashing errors.
-     */
     public User registerUser(UserRequest request) {
         logger.info("Registering new user: {}", request.getUsername());
         String username = request.getUsername().toLowerCase();
@@ -45,7 +40,6 @@ public class UserService {
             logger.warn("User registration failed. username already exists: {}", request.getUsername());
             throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
         }
-
         try {
             byte[] saltBytes = generateSalt();
             String saltString = Base64.getEncoder().encodeToString(saltBytes);
@@ -60,21 +54,18 @@ public class UserService {
             logger.info("User registered successfully: {}", savedUser.getUsername());
             return savedUser;
 
+
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             logger.error("Error during password hashing for user {}: {}", request.getUsername(), e.getMessage(), e);
-            throw new InvalidInputException("Error processing registration. Please try again later.");
+            throw new InvalidInputException("Error processing registration");
         }
     }
-
-    /**
-     * Authenticates a user.
-     * Throws InvalidCredentialsException if username or password is incorrect.
-     */
     public User authenticateUser(String username, String rawPassword) {
         logger.info("Authenticating user: {}", username);
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password."));
+
 
         try {
             byte[] storedSaltBytes = Base64.getDecoder().decode(user.getSalt());
@@ -85,9 +76,9 @@ public class UserService {
                 throw new InvalidCredentialsException("Invalid username or password.");
             }
 
+
             logger.info("User authenticated successfully: {}", username);
             return user;
-
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
             logger.error("Error during authentication for user {}: {}", username, e.getMessage(), e);
             throw new InvalidInputException("Error verifying credentials. Please try again later.");
