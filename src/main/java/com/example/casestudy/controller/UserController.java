@@ -1,6 +1,6 @@
 package com.example.casestudy.controller;
 
-import com.example.casestudy.dto.Message;
+import com.example.casestudy.dto.MessageDto;
 import com.example.casestudy.dto.UserRequest;
 import com.example.casestudy.model.User;
 import com.example.casestudy.service.UserService;
@@ -24,24 +24,24 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Message> registerUser(@Valid @RequestBody UserRequest request) {
+    public ResponseEntity<MessageDto> registerUser(@Valid @RequestBody UserRequest request) {
         logger.info("Received registration request for username: {}", request.getUsername());
         userService.registerUser(request);
-        return new ResponseEntity<>(new Message("User Registered Successfully"), HttpStatus.CREATED);
+        return new ResponseEntity<>(new MessageDto("User Registered Successfully"), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Message> loginUser(@RequestBody UserRequest request) {
+    public ResponseEntity<MessageDto> loginUser(@RequestBody UserRequest request) {
         logger.info("Received login request for username: {}", request.getUsername());
         User user = userService.authenticateUser(request.getUsername(), request.getPassword());
         String token = JwtUtil.generateToken(user.getUsername());
-        return new ResponseEntity<>(new Message(token), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageDto(token), HttpStatus.OK);
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<Message> verify(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<MessageDto> verify(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
         String username = JwtUtil.validateToken(token);
-        return ResponseEntity.ok(new Message("Successfully verified user: " + username));
+        return ResponseEntity.ok(new MessageDto("Successfully verified user: " + username));
     }
 }

@@ -1,6 +1,6 @@
 package com.example.casestudy.controller;
 
-import com.example.casestudy.dto.Message;
+import com.example.casestudy.dto.MessageDto;
 import com.example.casestudy.dto.UserRequest;
 import com.example.casestudy.model.User;
 import com.example.casestudy.service.UserService;
@@ -45,7 +45,7 @@ public class UserControllerTest {
     void testRegisterUser_Success() {
         when(userService.registerUser(any(UserRequest.class))).thenReturn(user);
 
-        ResponseEntity<Message> response = userController.registerUser(request);
+        ResponseEntity<MessageDto> response = userController.registerUser(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("User Registered Successfully", response.getBody().getMessage());
@@ -60,7 +60,7 @@ public class UserControllerTest {
         try (MockedStatic<JwtUtil> mockedJwt = mockStatic(JwtUtil.class)) {
             mockedJwt.when(() -> JwtUtil.generateToken("testuser")).thenReturn("mockedToken");
 
-            ResponseEntity<Message> response = userController.loginUser(request);
+            ResponseEntity<MessageDto> response = userController.loginUser(request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals("mockedToken", response.getBody().getMessage());
@@ -76,7 +76,7 @@ public class UserControllerTest {
         try (MockedStatic<JwtUtil> mockedJwt = mockStatic(JwtUtil.class)) {
             mockedJwt.when(() -> JwtUtil.validateToken(token)).thenReturn(username);
 
-            ResponseEntity<Message> response = userController.verify("Bearer " + token);
+            ResponseEntity<MessageDto> response = userController.verify("Bearer " + token);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals("Successfully verified user: testuser", response.getBody().getMessage());
