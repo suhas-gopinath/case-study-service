@@ -1,4 +1,4 @@
-package com.example.CaseStudy.model;
+package com.example.casestudy.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

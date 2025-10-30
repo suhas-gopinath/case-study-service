@@ -1,4 +1,4 @@
-package com.example.CaseStudy.dto;
+package com.example.casestudy.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

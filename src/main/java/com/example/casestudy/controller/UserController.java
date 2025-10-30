@@ -1,10 +1,10 @@
-package com.example.CaseStudy.controller;
+package com.example.casestudy.controller;
 
-import com.example.CaseStudy.dto.Message;
-import com.example.CaseStudy.dto.UserRequest;
-import com.example.CaseStudy.model.User;
-import com.example.CaseStudy.service.UserService;
-import com.example.CaseStudy.util.JwtUtil;
+import com.example.casestudy.dto.Message;
+import com.example.casestudy.dto.UserRequest;
+import com.example.casestudy.model.User;
+import com.example.casestudy.service.UserService;
+import com.example.casestudy.util.JwtUtil;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

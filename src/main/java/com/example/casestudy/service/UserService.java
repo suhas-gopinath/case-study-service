@@ -1,11 +1,11 @@
-package com.example.CaseStudy.service;
+package com.example.casestudy.service;
 
-import com.example.CaseStudy.dto.UserRequest;
-import com.example.CaseStudy.exception.InvalidCredentialsException;
-import com.example.CaseStudy.exception.InvalidInputException;
-import com.example.CaseStudy.exception.UserAlreadyExistsException;
-import com.example.CaseStudy.model.User;
-import com.example.CaseStudy.repository.UserRepository;
+import com.example.casestudy.dto.UserRequest;
+import com.example.casestudy.exception.InvalidCredentialsException;
+import com.example.casestudy.exception.InvalidInputException;
+import com.example.casestudy.exception.UserAlreadyExistsException;
+import com.example.casestudy.model.User;
+import com.example.casestudy.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

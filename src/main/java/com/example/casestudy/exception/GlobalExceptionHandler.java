@@ -1,6 +1,5 @@
-package com.example.CaseStudy.exception;
+package com.example.casestudy.exception;
 
-import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

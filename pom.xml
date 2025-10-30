@@ -9,7 +9,7 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>CaseStudy</artifactId>
+	<artifactId>casestudy</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>CaseStudy</name>
 	<description>Case study project for Spring Boot</description>

@@ -1,4 +1,4 @@
-package com.example.CaseStudy.dto;
+package com.example.casestudy.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

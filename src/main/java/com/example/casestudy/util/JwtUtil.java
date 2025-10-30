@@ -1,6 +1,6 @@
-package com.example.CaseStudy.util;
+package com.example.casestudy.util;
 
-import com.example.CaseStudy.exception.TokenValidationException;
+import com.example.casestudy.exception.TokenValidationException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
 
