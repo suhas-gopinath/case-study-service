@@ -17,9 +17,12 @@ public class CorsConfig implements WebMvcConfigurer {
     @Value("${app.cors.allowed-mf-container}")
     private String allowedMfContainer;
 
+    @Value("${app.cors.allowed-nginx}")
+    private String nginxPort;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        String[] allowedOrigins = { allowedMf1, allowedMf2, allowedMfContainer };
+        String[] allowedOrigins = { allowedMf1, allowedMf2, allowedMfContainer, nginxPort };
         registry.addMapping("/**")
                 .allowedOriginPatterns(allowedOrigins)
                 .allowedMethods("GET", "POST")

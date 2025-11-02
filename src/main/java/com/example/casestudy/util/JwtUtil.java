@@ -41,7 +41,7 @@ public class JwtUtil {
         } catch (SignatureException e) {
             throw new TokenValidationException("Invalid JWT signature");
         } catch (IllegalArgumentException e) {
-            throw new TokenValidationException("JWT token is missing or empty");
+            throw new TokenValidationException("JWT token is missing");
         }
     }
 }
