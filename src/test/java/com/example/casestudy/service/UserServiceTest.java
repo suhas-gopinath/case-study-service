@@ -9,6 +9,8 @@ import com.example.casestudy.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+
+import java.lang.reflect.Method;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -74,7 +76,7 @@ class UserServiceTest {
         String saltBase64 = Base64.getEncoder().encodeToString(saltBytes);
         storedUser.setSalt(saltBase64);
 
-        var method = UserService.class.getDeclaredMethod("hashPassword", String.class, byte[].class);
+        Method method = UserService.class.getDeclaredMethod("hashPassword", String.class, byte[].class);
         method.setAccessible(true);
         String correctHash = (String) method.invoke(userService, "password123", saltBytes);
 
