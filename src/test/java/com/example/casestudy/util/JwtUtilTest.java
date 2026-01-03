@@ -17,8 +17,8 @@ class JwtUtilTest {
     @BeforeEach
     void setUp() {
         jwtConfig = Mockito.mock(JwtConfig.class);
-        String SECRET = "secretKeyForTestingThatIsLongEnoughForHS256";
-        when(jwtConfig.getSecretKey()).thenReturn(SECRET);
+        String secret = "secretKeyForTestingThatIsLongEnoughForHS256";
+        when(jwtConfig.getSecretKey()).thenReturn(secret);
         when(jwtConfig.getExpirationTime()).thenReturn(3600000L);
 
         jwtUtil = new JwtUtil(jwtConfig);

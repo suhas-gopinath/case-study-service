@@ -37,6 +37,6 @@ class UserTest {
         User user2 = new User(id, "testUser", "hash", "salt");
 
         assertThat(user1).isEqualTo(user2);
-        assertThat(user1.hashCode()).isEqualTo(user2.hashCode());
+        assertThat(user1.hashCode()).hasSameHashCodeAs(user2.hashCode());
     }
 }
