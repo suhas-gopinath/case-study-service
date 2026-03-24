@@ -18,7 +18,7 @@ package com.example.casestudy.service.token;
  * - Multiple token types (access, refresh, API keys) can coexist
  * - No changes required to controllers when adding new token types
  */
-public interface TokenService {
+public interface AccessTokenService {
     
     /**
      * Generates an access token for the specified username.

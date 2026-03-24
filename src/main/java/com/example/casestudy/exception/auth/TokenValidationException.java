@@ -17,7 +17,8 @@ import org.springframework.http.HttpStatus;
  * Design Notes:
  * - Extends AppException to inherit standardized exception handling
  * - Accepts custom message to provide specific token validation error details
- * - Used by JwtTokenService for all token validation failures
+
+ * - Used by JwtAccessTokenService for all token validation failures
  * 
  * Usage:
  * Thrown by TokenService implementations when token validation fails,

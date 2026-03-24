@@ -1,28 +1,25 @@
 package com.example.casestudy.service.token;
 
 import com.example.casestudy.config.JwtConfig;
-
 import com.example.casestudy.exception.auth.TokenValidationException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-
-
 import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 import static org.mockito.Mockito.when;
 
-class JwtTokenServiceTest {
+/**
+ * Unit tests for JwtAccessTokenService.
+ */
+class JwtAccessTokenServiceTest {
 
 
 
 
 
-    private JwtTokenService tokenService;
+    private JwtAccessTokenService tokenService;
     private JwtConfig jwtConfig;
 
     @BeforeEach
@@ -33,7 +30,7 @@ class JwtTokenServiceTest {
         when(jwtConfig.getSecretKey()).thenReturn(secret);
         when(jwtConfig.getExpirationTime()).thenReturn(3600000L);
 
-        tokenService = new JwtTokenService(jwtConfig);
+        tokenService = new JwtAccessTokenService(jwtConfig);
     }
 
     @Test
@@ -57,7 +54,6 @@ class JwtTokenServiceTest {
     }
 
     @Test
-
 
 
 
@@ -112,7 +108,7 @@ class JwtTokenServiceTest {
 
         JwtConfig wrongKeyConfig = Mockito.mock(JwtConfig.class);
         when(wrongKeyConfig.getSecretKey()).thenReturn("MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI");
-        JwtTokenService secondTokenService = new JwtTokenService(wrongKeyConfig);
+        JwtAccessTokenService secondTokenService = new JwtAccessTokenService(wrongKeyConfig);
 
 
 

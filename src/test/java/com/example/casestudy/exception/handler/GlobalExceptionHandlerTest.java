@@ -3,6 +3,7 @@ package com.example.casestudy.exception.handler;
 
 import com.example.casestudy.dto.ErrorResponse;
 import com.example.casestudy.exception.auth.InvalidCredentialsException;
+import com.example.casestudy.exception.auth.InvalidRefreshTokenException;
 import com.example.casestudy.exception.auth.TokenValidationException;
 import com.example.casestudy.exception.common.InvalidInputException;
 import com.example.casestudy.exception.user.UserAlreadyExistsException;
@@ -131,6 +132,23 @@ class GlobalExceptionHandlerTest {
         assertEquals(500, errorResponse.getStatus());
         assertEquals("Internal Server Error", errorResponse.getError());
         assertEquals("Internal server error", errorResponse.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should handle InvalidRefreshTokenException with UNAUTHORIZED status")
+    void testHandleInvalidRefreshTokenException() {
+        InvalidRefreshTokenException exception = new InvalidRefreshTokenException();
+
+        ResponseEntity<Object> response = exceptionHandler.handleAppException(exception);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof ErrorResponse);
+        
+        ErrorResponse errorResponse = (ErrorResponse) response.getBody();
+        assertEquals(401, errorResponse.getStatus());
+        assertEquals("Unauthorized", errorResponse.getError());
+        assertEquals("Invalid or expired refresh token", errorResponse.getMessage());
     }
 
     @Test

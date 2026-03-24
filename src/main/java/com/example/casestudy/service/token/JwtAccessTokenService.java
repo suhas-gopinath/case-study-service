@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
- * JWT implementation of the TokenService interface.
+ * JWT implementation of the AccessTokenService interface.
  * 
  * This implementation handles JWT token generation and validation directly,
  * providing a clean abstraction layer for future extensibility.
@@ -20,7 +20,7 @@ import java.util.Date;
  * SOLID Principles:
  * - Single Responsibility: Handles only JWT token operations
  * - Open/Closed: Can be extended or replaced without modifying clients
- * - Liskov Substitution: Fully substitutable for TokenService interface
+ * - Liskov Substitution: Fully substitutable for AccessTokenService interface
  * - Dependency Inversion: Depends on JwtConfig abstraction
  * 
  * Design Notes:
@@ -32,11 +32,11 @@ import java.util.Date;
  * - Multiple token services can coexist for different token types
  */
 @Service
-public class JwtTokenService implements TokenService {
+public class JwtAccessTokenService implements AccessTokenService {
     
     private final JwtConfig jwtConfig;
     
-    public JwtTokenService(JwtConfig jwtConfig) {
+    public JwtAccessTokenService(JwtConfig jwtConfig) {
         this.jwtConfig = jwtConfig;
     }
     
