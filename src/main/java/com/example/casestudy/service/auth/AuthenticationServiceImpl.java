@@ -1,9 +1,12 @@
 package com.example.casestudy.service.auth;
 
 import com.example.casestudy.dto.UserRequest;
-import com.example.casestudy.exception.InvalidCredentialsException;
-import com.example.casestudy.exception.InvalidInputException;
-import com.example.casestudy.exception.UserAlreadyExistsException;
+
+
+
+import com.example.casestudy.exception.auth.InvalidCredentialsException;
+import com.example.casestudy.exception.common.InvalidInputException;
+import com.example.casestudy.exception.user.UserAlreadyExistsException;
 import com.example.casestudy.model.User;
 import com.example.casestudy.repository.UserRepository;
 import com.example.casestudy.service.password.PBKDF2PasswordService;
@@ -108,7 +111,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         logger.info("Authenticating user: {}", username);
         
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password."));
+
+                .orElseThrow(() -> new InvalidCredentialsException());
         
         try {
             // Verify password using PasswordService
@@ -116,7 +120,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             
             if (!isValid) {
                 logger.warn("Authentication failed — invalid password for user: {}", username);
-                throw new InvalidCredentialsException("Invalid username or password.");
+
+                throw new InvalidCredentialsException();
             }
             
             logger.info("User authenticated successfully: {}", username);

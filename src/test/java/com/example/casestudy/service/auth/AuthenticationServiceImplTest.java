@@ -1,9 +1,12 @@
 package com.example.casestudy.service.auth;
 
 import com.example.casestudy.dto.UserRequest;
-import com.example.casestudy.exception.InvalidCredentialsException;
-import com.example.casestudy.exception.InvalidInputException;
-import com.example.casestudy.exception.UserAlreadyExistsException;
+
+
+
+import com.example.casestudy.exception.auth.InvalidCredentialsException;
+import com.example.casestudy.exception.common.InvalidInputException;
+import com.example.casestudy.exception.user.UserAlreadyExistsException;
 import com.example.casestudy.model.User;
 import com.example.casestudy.repository.UserRepository;
 import com.example.casestudy.service.password.PBKDF2PasswordService;

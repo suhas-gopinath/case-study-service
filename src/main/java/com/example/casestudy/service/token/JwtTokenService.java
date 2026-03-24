@@ -1,7 +1,7 @@
 package com.example.casestudy.service.token;
 
 import com.example.casestudy.config.JwtConfig;
-import com.example.casestudy.exception.TokenValidationException;
+import com.example.casestudy.exception.auth.TokenValidationException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;

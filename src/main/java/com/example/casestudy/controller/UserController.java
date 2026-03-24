@@ -37,11 +37,6 @@ public class UserController {
     private final AuthenticationService authenticationService;
     private final TokenService tokenService;
 
-
-
-
-
-
     /**
      * Constructor injection for dependency inversion.
      * 

@@ -1,7 +1,8 @@
 package com.example.casestudy.service.token;
 
 import com.example.casestudy.config.JwtConfig;
-import com.example.casestudy.exception.TokenValidationException;
+
+import com.example.casestudy.exception.auth.TokenValidationException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
