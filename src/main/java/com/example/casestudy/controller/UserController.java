@@ -114,7 +114,7 @@ public class UserController {
      * @param authHeader The Authorization header containing the Bearer token
      * @return ResponseEntity with verification message and HTTP 200 OK status
      */
-    @GetMapping("/verify")
+    @GetMapping("/verify/v1")
     public ResponseEntity<MessageDto> verify(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
 
@@ -195,7 +195,7 @@ public class UserController {
      * @param authHeader The Authorization header containing the Bearer token
      * @return ResponseEntity with username in MessageDto
      */
-    @GetMapping("/me")
+    @GetMapping("/verify/v2")
     public ResponseEntity<MessageDto> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
         logger.info("Received current user request");
         
@@ -203,7 +203,7 @@ public class UserController {
         String username = tokenService.validateAccessToken(token);
         
         logger.info("Current user retrieved: {}", username);
-        return ResponseEntity.ok(new MessageDto(username));
+        return ResponseEntity.ok(new MessageDto("Successfully verified user: " + username));
     }
     
     /**
@@ -225,7 +225,6 @@ public class UserController {
         cookie.setSecure(false); // Set to true in production with HTTPS
         cookie.setPath("/users");
         cookie.setMaxAge(REFRESH_TOKEN_COOKIE_MAX_AGE);
-        // SameSite=Strict is set via application configuration or manually if needed
         response.addCookie(cookie);
     }
     

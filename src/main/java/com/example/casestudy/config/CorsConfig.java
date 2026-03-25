@@ -24,11 +24,12 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         String[] allowedOrigins = { allowedMf1, allowedMf2, allowedMfContainer, nginxPort };
         registry.addMapping("/**")
-                .allowedOriginPatterns(allowedOrigins)
-                .allowedMethods("GET", "POST")
-                .allowedHeaders("*")
-                .exposedHeaders("Authorization")
-                .allowCredentials(true);  
+            .allowedOriginPatterns(allowedOrigins)
+            .allowedMethods("GET", "POST", "OPTIONS", "PUT", "DELETE")
+            .allowedHeaders("Content-Type", "Authorization", "X-Requested-With", "Accept")
+            .exposedHeaders("Authorization")
+            .allowCredentials(true)
+            .maxAge(3600);
     }
 }
 
