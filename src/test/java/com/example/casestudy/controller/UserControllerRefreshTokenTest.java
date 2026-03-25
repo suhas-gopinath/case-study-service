@@ -163,13 +163,13 @@ class UserControllerRefreshTokenTest {
 
     @Test
     @DisplayName("Should return current user information from JWT")
-    void testGetCurrentUser_Success() {
+    void testverifyV2_Success() {
         String authHeader = "Bearer jwt-access-token";
         String username = "testUser";
 
         when(accessTokenService.validateAccessToken("jwt-access-token")).thenReturn(username);
 
-        ResponseEntity<MessageDto> result = userController.getCurrentUser(authHeader);
+        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(username, result.getBody().getMessage());
@@ -179,13 +179,13 @@ class UserControllerRefreshTokenTest {
 
     @Test
     @DisplayName("Should handle missing Bearer prefix in Authorization header")
-    void testGetCurrentUser_WithoutBearerPrefix() {
+    void testverifyV2_WithoutBearerPrefix() {
         String authHeader = "jwt-access-token"; // Missing "Bearer " prefix
         String username = "testUser";
 
         when(accessTokenService.validateAccessToken("jwt-access-token")).thenReturn(username);
 
-        ResponseEntity<MessageDto> result = userController.getCurrentUser(authHeader);
+        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(username, result.getBody().getMessage());

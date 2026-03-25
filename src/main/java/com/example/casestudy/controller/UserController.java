@@ -196,7 +196,7 @@ public class UserController {
      * @return ResponseEntity with username in MessageDto
      */
     @GetMapping("/verify/v2")
-    public ResponseEntity<MessageDto> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<MessageDto> verifyV2(@RequestHeader("Authorization") String authHeader) {
         logger.info("Received current user request");
         
         String token = authHeader.replace("Bearer ", "");
