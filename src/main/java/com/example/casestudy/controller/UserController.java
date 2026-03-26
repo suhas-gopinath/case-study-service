@@ -88,7 +88,6 @@ public class UserController {
      * @return ResponseEntity with JWT access token and HTTP 200 OK status
      */
     @PostMapping("/login")
-
     public ResponseEntity<MessageDto> loginUser(@RequestBody UserRequest request, HttpServletResponse response) {
         logger.info("Received login request for username: {}", request.getUsername());
 

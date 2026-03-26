@@ -172,7 +172,9 @@ class UserControllerRefreshTokenTest {
         ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(username, result.getBody().getMessage());
+
+        // Expecting full message: 'Successfully verified user: testUser'
+        assertEquals("Successfully verified user: " + username, result.getBody().getMessage());
 
         verify(accessTokenService, times(1)).validateAccessToken("jwt-access-token");
     }
@@ -188,7 +190,9 @@ class UserControllerRefreshTokenTest {
         ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(username, result.getBody().getMessage());
+
+        // Expecting full message: 'Successfully verified user: testUser'
+        assertEquals("Successfully verified user: " + username, result.getBody().getMessage());
     }
 
     @Test
