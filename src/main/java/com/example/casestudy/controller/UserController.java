@@ -97,14 +97,14 @@ public class UserController {
 
         
         // Generate access token (existing behavior)
-        String accessToken = tokenService.generateAccessToken(user.getUsername());
+        // String accessToken = tokenService.generateAccessToken(user.getUsername());
         
         // Generate refresh token and set in HTTP-only cookie (new behavior)
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername());
         setRefreshTokenCookie(response, refreshToken);
         
         logger.info("Login successful for user: {}", user.getUsername());
-        return new ResponseEntity<>(new MessageDto(accessToken), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageDto("Login Successful"), HttpStatus.OK);
     }
 
     /**
@@ -222,7 +222,7 @@ public class UserController {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
-         cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Strict");
         cookie.setPath("/users");
         cookie.setMaxAge(REFRESH_TOKEN_COOKIE_MAX_AGE);
         response.addCookie(cookie);
@@ -239,7 +239,7 @@ public class UserController {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
-         cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Strict");
         cookie.setPath("/users");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
