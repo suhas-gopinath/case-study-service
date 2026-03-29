@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -108,6 +109,26 @@ public class GlobalExceptionHandler {
         String message = "Missing required header: " + ex.getHeaderName();
         logger.warn("Missing request header: {}", ex.getHeaderName());
         return buildResponseEntity(message, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles missing request cookie exceptions.
+     * 
+     * This handler provides specific error messages for missing cookies,
+     * particularly for refresh token authentication.
+     * 
+     * Security:
+     * - Generic error message prevents information leakage
+     * - Returns 401 UNAUTHORIZED for authentication-related cookies
+     * 
+     * @param ex The missing request cookie exception
+     * @return ResponseEntity with error details and HTTP 401 UNAUTHORIZED status
+     */
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<Object> handleMissingCookie(MissingRequestCookieException ex) {
+        String message = "Refresh token is missing";
+        logger.warn("Missing cookie: {}", ex.getCookieName());
+        return buildResponseEntity(message, HttpStatus.UNAUTHORIZED);
     }
 
     /**

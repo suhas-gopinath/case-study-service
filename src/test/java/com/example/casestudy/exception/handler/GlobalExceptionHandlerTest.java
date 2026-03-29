@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.core.MethodParameter;
 
@@ -118,6 +119,27 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("Should handle MissingRequestCookieException with UNAUTHORIZED status")
+    void testHandleMissingRequestCookieException() throws NoSuchMethodException {
+        // Create a mock MethodParameter for the exception
+        Method method = GlobalExceptionHandlerTest.class.getDeclaredMethod("dummyMethod", String.class);
+        MethodParameter parameter = new MethodParameter(method, 0);
+        
+        MissingRequestCookieException exception = new MissingRequestCookieException("refreshToken", parameter);
+
+        ResponseEntity<Object> response = exceptionHandler.handleMissingCookie(exception);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof ErrorResponse);
+        
+        ErrorResponse errorResponse = (ErrorResponse) response.getBody();
+        assertEquals(401, errorResponse.getStatus());
+        assertEquals("Unauthorized", errorResponse.getError());
+        assertEquals("Refresh token is missing", errorResponse.getMessage());
+    }
+
+    @Test
     @DisplayName("Should handle generic Exception with INTERNAL_SERVER_ERROR status")
     void testHandleGenericException() {
         Exception exception = new RuntimeException("Unexpected error");
@@ -169,7 +191,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(3, ErrorResponse.class.getDeclaredFields().length);
     }
 
-    // Dummy method for MissingRequestHeaderException test
+    // Dummy method for MissingRequestHeaderException and MissingRequestCookieException tests
     private void dummyMethod(String header) {
         // This method is only used for creating MethodParameter in tests
     }

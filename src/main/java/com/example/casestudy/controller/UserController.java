@@ -182,7 +182,7 @@ public class UserController {
         clearRefreshTokenCookie(response);
         
         logger.info("Logout successful");
-        return ResponseEntity.ok(new MessageDto("Logged out successfully"));
+        return ResponseEntity.ok(new MessageDto("Refresh Token Revoked and logged out successfully"));
     }
     
     /**
@@ -221,7 +221,8 @@ public class UserController {
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // Set to true in production with HTTPS
+        cookie.setSecure(false);
+         cookie.setAttribute("SameSite", "Strict");
         cookie.setPath("/users");
         cookie.setMaxAge(REFRESH_TOKEN_COOKIE_MAX_AGE);
         response.addCookie(cookie);
@@ -238,8 +239,9 @@ public class UserController {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
+         cookie.setAttribute("SameSite", "Strict");
         cookie.setPath("/users");
-        cookie.setMaxAge(0); // Delete cookie
+        cookie.setMaxAge(0);
         response.addCookie(cookie);
     }
 }

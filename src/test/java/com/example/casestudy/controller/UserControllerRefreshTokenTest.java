@@ -11,7 +11,6 @@ import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -130,7 +129,7 @@ class UserControllerRefreshTokenTest {
         ResponseEntity<MessageDto> result = userController.logout(refreshToken, response);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Logged out successfully", result.getBody().getMessage());
+        assertEquals("Refresh Token Revoked and logged out successfully", result.getBody().getMessage());
 
         // Verify token was revoked
         verify(refreshTokenService, times(1)).revokeRefreshToken(refreshToken);
@@ -150,7 +149,7 @@ class UserControllerRefreshTokenTest {
         ResponseEntity<MessageDto> result = userController.logout(null, response);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Logged out successfully", result.getBody().getMessage());
+        assertEquals("Refresh Token Revoked and logged out successfully", result.getBody().getMessage());
 
         // Verify revoke was not called
         verify(refreshTokenService, never()).revokeRefreshToken(anyString());
