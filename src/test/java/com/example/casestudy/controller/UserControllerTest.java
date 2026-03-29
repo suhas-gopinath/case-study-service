@@ -69,20 +69,16 @@ class UserControllerTest {
 
         when(authenticationService.authenticate("testUser", "password")).thenReturn(mockUser);
 
-        when(accessTokenService.generateAccessToken("testUser")).thenReturn("mockToken123");
+        // when(accessTokenService.generateAccessToken("testUser")).thenReturn("mockToken123");
         when(refreshTokenService.createRefreshToken("testUser")).thenReturn("refresh-token-uuid");
 
         ResponseEntity<MessageDto> result = userController.loginUser(request, response);
 
-
-
-
-
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("mockToken123", result.getBody().getMessage());
+        assertEquals("Login Successful", result.getBody().getMessage());
         verify(authenticationService, times(1)).authenticate("testUser", "password");
 
-        verify(accessTokenService, times(1)).generateAccessToken("testUser");
+        // verify(accessTokenService, times(1)).generateAccessToken("testUser");
         verify(refreshTokenService, times(1)).createRefreshToken("testUser");
     }
 

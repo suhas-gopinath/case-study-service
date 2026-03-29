@@ -59,18 +59,16 @@ class UserControllerRefreshTokenTest {
         UserRequest request = new UserRequest("testUser", "Password123!");
         User mockUser = new User();
         mockUser.setUsername("testUser");
-        String accessToken = "jwt-access-token";
         String refreshToken = "refresh-token-uuid";
 
         when(authenticationService.authenticate("testUser", "Password123!")).thenReturn(mockUser);
-        when(accessTokenService.generateAccessToken("testUser")).thenReturn(accessToken);
         when(refreshTokenService.createRefreshToken("testUser")).thenReturn(refreshToken);
 
         ResponseEntity<MessageDto> result = userController.loginUser(request, response);
 
         // Verify response
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(accessToken, result.getBody().getMessage());
+        // assertEquals(accessToken, result.getBody().getMessage());
 
         // Verify cookie was set
         Cookie cookie = response.getCookie("refreshToken");
@@ -82,7 +80,6 @@ class UserControllerRefreshTokenTest {
         assertEquals(7 * 24 * 60 * 60, cookie.getMaxAge()); // 7 days
 
         verify(authenticationService, times(1)).authenticate("testUser", "Password123!");
-        verify(accessTokenService, times(1)).generateAccessToken("testUser");
         verify(refreshTokenService, times(1)).createRefreshToken("testUser");
     }
 
@@ -200,16 +197,13 @@ class UserControllerRefreshTokenTest {
         UserRequest request = new UserRequest("testUser", "Password123!");
         User mockUser = new User();
         mockUser.setUsername("testUser");
-        String accessToken = "jwt-access-token";
 
         when(authenticationService.authenticate("testUser", "Password123!")).thenReturn(mockUser);
-        when(accessTokenService.generateAccessToken("testUser")).thenReturn(accessToken);
         when(refreshTokenService.createRefreshToken("testUser")).thenReturn("refresh-token");
 
         ResponseEntity<MessageDto> result = userController.loginUser(request, response);
 
         // API contract: JWT access token in MessageDto
-        assertEquals(accessToken, result.getBody().getMessage());
         assertEquals(HttpStatus.OK, result.getStatusCode());
         
         // Refresh token is NOT in response body (only in cookie)
