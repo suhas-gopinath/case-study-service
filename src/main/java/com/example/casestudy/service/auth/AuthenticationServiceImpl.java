@@ -8,7 +8,7 @@ import com.example.casestudy.exception.auth.InvalidCredentialsException;
 import com.example.casestudy.exception.common.InvalidInputException;
 import com.example.casestudy.exception.user.UserAlreadyExistsException;
 import com.example.casestudy.model.User;
-import com.example.casestudy.repository.UserRepository;
+import com.example.casestudy.service.database.UserDatabaseService;
 import com.example.casestudy.service.password.PBKDF2PasswordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import java.util.Base64;
  * - Single Responsibility: Handles only authentication orchestration
  * - Open/Closed: Can be extended or replaced without modifying clients
  * - Liskov Substitution: Fully substitutable for AuthenticationService interface
- * - Dependency Inversion: Depends on abstractions (PasswordService, UserRepository)
+ * - Dependency Inversion: Depends on abstractions (PasswordService, UserDatabaseService)
  * 
  * All business logic and error handling are preserved from the original UserService.
  */
@@ -38,11 +38,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
     
-    private final UserRepository userRepository;
+    private final UserDatabaseService userDatabaseService;
     private final PBKDF2PasswordService passwordService;
     
-    public AuthenticationServiceImpl(UserRepository userRepository, PBKDF2PasswordService passwordService) {
-        this.userRepository = userRepository;
+    public AuthenticationServiceImpl(UserDatabaseService userDatabaseService, PBKDF2PasswordService passwordService) {
+        this.userDatabaseService = userDatabaseService;
         this.passwordService = passwordService;
     }
     
@@ -65,7 +65,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         logger.info("Registering new user: {}", request.getUsername());
         String username = request.getUsername().toLowerCase();
         
-        if (userRepository.findByUsername(username).isPresent()) {
+        if (userDatabaseService.findByUsername(username).isPresent()) {
             logger.warn("User registration failed. username already exists: {}", request.getUsername());
             throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
         }
@@ -82,7 +82,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             newUser.setPasswordHash(hashedPassword);
             newUser.setSalt(saltString);
             
-            User savedUser = userRepository.save(newUser);
+            User savedUser = userDatabaseService.save(newUser);
             logger.info("User registered successfully: {}", savedUser.getUsername());
             return savedUser;
             
@@ -110,7 +110,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public User authenticate(String username, String rawPassword) {
         logger.info("Authenticating user: {}", username);
         
-        User user = userRepository.findByUsername(username)
+        User user = userDatabaseService.findByUsername(username)
 
                 .orElseThrow(() -> new InvalidCredentialsException());
         
