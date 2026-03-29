@@ -8,7 +8,8 @@ import com.example.casestudy.exception.auth.InvalidCredentialsException;
 import com.example.casestudy.exception.common.InvalidInputException;
 import com.example.casestudy.exception.user.UserAlreadyExistsException;
 import com.example.casestudy.model.User;
-import com.example.casestudy.repository.UserRepository;
+
+import com.example.casestudy.service.database.UserDatabaseService;
 import com.example.casestudy.service.password.PBKDF2PasswordService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.*;
 class AuthenticationServiceImplTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserDatabaseService userDatabaseService;
 
     @Mock
     private PBKDF2PasswordService passwordService;
@@ -58,10 +59,12 @@ class AuthenticationServiceImplTest {
         byte[] mockSalt = "1234567890123456".getBytes();
         String mockHash = "mockHashedPassword";
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
+
+        when(userDatabaseService.findByUsername("testuser")).thenReturn(Optional.empty());
         when(passwordService.generateSalt()).thenReturn(mockSalt);
         when(passwordService.hash("Password123!", mockSalt)).thenReturn(mockHash);
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(userDatabaseService.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         User savedUser = authenticationService.register(userRequest);
 
@@ -70,8 +73,10 @@ class AuthenticationServiceImplTest {
         assertEquals(mockHash, savedUser.getPasswordHash());
         assertNotNull(savedUser.getSalt());
 
-        verify(userRepository, times(1)).findByUsername("testuser");
-        verify(userRepository, times(1)).save(any(User.class));
+
+
+        verify(userDatabaseService, times(1)).findByUsername("testuser");
+        verify(userDatabaseService, times(1)).save(any(User.class));
         verify(passwordService, times(1)).generateSalt();
         verify(passwordService, times(1)).hash("Password123!", mockSalt);
     }
@@ -79,47 +84,55 @@ class AuthenticationServiceImplTest {
     @Test
     @DisplayName("Should throw UserAlreadyExistsException when username exists")
     void testRegisterUser_UserAlreadyExists() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
+
+        when(userDatabaseService.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
 
         assertThrows(UserAlreadyExistsException.class, () -> {
             authenticationService.register(userRequest);
         });
 
-        verify(userRepository, times(1)).findByUsername("testuser");
-        verify(userRepository, never()).save(any());
+
+
+        verify(userDatabaseService, times(1)).findByUsername("testuser");
+        verify(userDatabaseService, never()).save(any());
     }
 
     @Test
     @DisplayName("Should authenticate user successfully")
     void testAuthenticateUser_Success() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
+
+        when(userDatabaseService.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
         when(passwordService.verify("Password123!", existingUser.getPasswordHash(), existingUser.getSalt()))
                 .thenReturn(true);
 
         User authenticatedUser = authenticationService.authenticate("testuser", "Password123!");
 
         assertEquals("testuser", authenticatedUser.getUsername());
-        verify(userRepository, times(1)).findByUsername("testuser");
+
+        verify(userDatabaseService, times(1)).findByUsername("testuser");
         verify(passwordService, times(1)).verify("Password123!", existingUser.getPasswordHash(), existingUser.getSalt());
     }
 
     @Test
     @DisplayName("Should throw InvalidCredentialsException for invalid username")
     void testAuthenticateUser_InvalidUsername() {
-        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+
+        when(userDatabaseService.findByUsername("unknown")).thenReturn(Optional.empty());
 
         assertThrows(InvalidCredentialsException.class, () -> {
             authenticationService.authenticate("unknown", "Password123!");
         });
 
-        verify(userRepository, times(1)).findByUsername("unknown");
+
+        verify(userDatabaseService, times(1)).findByUsername("unknown");
         verify(passwordService, never()).verify(anyString(), anyString(), anyString());
     }
 
     @Test
     @DisplayName("Should throw InvalidCredentialsException for wrong password")
     void testAuthenticateUser_WrongPassword() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
+
+        when(userDatabaseService.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
         when(passwordService.verify("WrongPassword!", existingUser.getPasswordHash(), existingUser.getSalt()))
                 .thenReturn(false);
 
@@ -127,14 +140,16 @@ class AuthenticationServiceImplTest {
             authenticationService.authenticate("testuser", "WrongPassword!");
         });
 
-        verify(userRepository, times(1)).findByUsername("testuser");
+
+        verify(userDatabaseService, times(1)).findByUsername("testuser");
         verify(passwordService, times(1)).verify("WrongPassword!", existingUser.getPasswordHash(), existingUser.getSalt());
     }
 
     @Test
     @DisplayName("Should throw InvalidInputException on password verification error")
     void testAuthenticateUser_VerificationError() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
+
+        when(userDatabaseService.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
         when(passwordService.verify(anyString(), anyString(), anyString()))
                 .thenThrow(new RuntimeException("Verification error"));
 

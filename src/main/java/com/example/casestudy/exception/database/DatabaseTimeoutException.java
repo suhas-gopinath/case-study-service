@@ -1,4 +1,4 @@
-﻿package com.example.casestudy.exception.database;
+package com.example.casestudy.exception.database;
 
 import com.example.casestudy.exception.AppException;
 import org.springframework.http.HttpStatus;
