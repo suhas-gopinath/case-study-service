@@ -93,11 +93,6 @@ public class UserController {
 
 
         User user = authenticationService.authenticate(request.getUsername(), request.getPassword());
-
-
-        
-        // Generate access token (existing behavior)
-        // String accessToken = tokenService.generateAccessToken(user.getUsername());
         
         // Generate refresh token and set in HTTP-only cookie (new behavior)
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername());

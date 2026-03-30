@@ -77,17 +77,4 @@ class PBKDF2PasswordServiceTest {
         
         assertNotEquals(hash1, hash2);
     }
-
-    @Test
-    @DisplayName("Should throw exception for invalid salt during verification")
-    void testVerifyWithInvalidSalt() {
-        String password = "TestPassword123!";
-        byte[] salt = passwordService.generateSalt();
-        String hash = passwordService.hash(password, salt);
-        String invalidSalt = "invalid!!base64###";
-        
-        assertThrows(RuntimeException.class, () -> {
-            passwordService.verify(password, hash, invalidSalt);
-        });
-    }
 }

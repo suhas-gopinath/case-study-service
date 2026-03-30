@@ -1,6 +1,7 @@
 package com.example.casestudy.service.token;
 
 import com.example.casestudy.exception.auth.InvalidRefreshTokenException;
+import com.example.casestudy.exception.common.InvalidInputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,6 +70,7 @@ public class RedisRefreshTokenService implements RefreshTokenService {
      * 
      * @param username The username to associate with the refresh token
      * @return The generated refresh token (UUID string)
+     * @throws InvalidInputException if token creation fails
      */
     @Override
     public String createRefreshToken(String username) {
@@ -85,7 +87,7 @@ public class RedisRefreshTokenService implements RefreshTokenService {
             return token;
         } catch (Exception e) {
             logger.error("Error creating refresh token for user {}: {}", username, e.getMessage(), e);
-            throw new RuntimeException("Error creating refresh token", e);
+            throw new InvalidInputException("Error creating refresh token");
         }
     }
     

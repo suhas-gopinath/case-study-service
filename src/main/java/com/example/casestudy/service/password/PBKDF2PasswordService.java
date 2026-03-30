@@ -1,5 +1,6 @@
 package com.example.casestudy.service.password;
 
+import com.example.casestudy.exception.common.InvalidInputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class PBKDF2PasswordService implements PasswordService {
      * @param password The plain text password to hash
      * @param salt The salt bytes to use for hashing
      * @return The hashed password as a Base64-encoded string
-     * @throws RuntimeException if hashing fails due to algorithm or key spec issues
+     * @throws InvalidInputException if hashing fails due to algorithm or key spec issues
      */
     @Override
     public String hash(String password, byte[] salt) {
@@ -58,7 +59,7 @@ public class PBKDF2PasswordService implements PasswordService {
             return Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             logger.error("Error during password hashing: {}", e.getMessage(), e);
-            throw new RuntimeException("Error processing password hash", e);
+            throw new InvalidInputException("Error processing password hash");
         }
     }
     
@@ -69,7 +70,7 @@ public class PBKDF2PasswordService implements PasswordService {
      * @param storedHash The stored password hash (Base64-encoded)
      * @param storedSalt The stored salt (Base64-encoded)
      * @return true if the password matches, false otherwise
-     * @throws RuntimeException if verification fails due to decoding or hashing issues
+     * @throws InvalidInputException if verification fails due to decoding or hashing issues
      */
     @Override
     public boolean verify(String rawPassword, String storedHash, String storedSalt) {
@@ -79,7 +80,7 @@ public class PBKDF2PasswordService implements PasswordService {
             return hashedAttempt.equals(storedHash);
         } catch (IllegalArgumentException e) {
             logger.error("Error decoding salt during password verification: {}", e.getMessage(), e);
-            throw new RuntimeException("Error verifying password", e);
+            throw new InvalidInputException("Error verifying password");
         }
     }
     
@@ -87,7 +88,7 @@ public class PBKDF2PasswordService implements PasswordService {
      * Generates a cryptographically secure random salt.
      * 
      * @return A byte array containing the random salt
-     * @throws RuntimeException if salt generation fails
+     * @throws InvalidInputException if salt generation fails
      */
     public byte[] generateSalt() {
         try {
@@ -97,7 +98,7 @@ public class PBKDF2PasswordService implements PasswordService {
             return salt;
         } catch (NoSuchAlgorithmException e) {
             logger.error("Error generating salt: {}", e.getMessage(), e);
-            throw new RuntimeException("Error generating salt", e);
+            throw new InvalidInputException("Error generating salt");
         }
     }
 }
