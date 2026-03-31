@@ -5,9 +5,8 @@ import com.example.casestudy.dto.UserRequest;
 import com.example.casestudy.model.User;
 import com.example.casestudy.service.token.AccessTokenService;
 import com.example.casestudy.service.token.RefreshTokenService;
-
 import com.example.casestudy.service.auth.AuthenticationService;
-import jakarta.servlet.http.Cookie;
+import com.example.casestudy.util.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -33,29 +32,28 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
 
-
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final int REFRESH_TOKEN_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
-    
     private final AuthenticationService authenticationService;
-    private final AccessTokenService tokenService;
+    private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
+    private final CookieUtil cookieUtil;
     
     /**
      * Constructor injection for dependency inversion.
      * 
      * @param authenticationService Service for user registration and authentication
-     * @param tokenService Service for token generation and validation
+     * @param accessTokenService Service for token generation and validation
      * @param refreshTokenService Service for refresh token operations
+     * @param cookieUtil Utility for cookie management
      */
-
     public UserController(AuthenticationService authenticationService, 
-                          AccessTokenService tokenService,
-                          RefreshTokenService refreshTokenService) {
+                          AccessTokenService accessTokenService,
+                          RefreshTokenService refreshTokenService,
+                          CookieUtil cookieUtil) {
         this.authenticationService = authenticationService;
-        this.tokenService = tokenService;
+        this.accessTokenService = accessTokenService;
         this.refreshTokenService = refreshTokenService;
+        this.cookieUtil = cookieUtil;
     }
 
     /**
@@ -73,7 +71,6 @@ public class UserController {
     }
 
     /**
-
      * Authenticates a user and generates an access token and refresh token.
      * 
      * Extended behavior:
@@ -91,12 +88,11 @@ public class UserController {
     public ResponseEntity<MessageDto> loginUser(@RequestBody UserRequest request, HttpServletResponse response) {
         logger.info("Received login request for username: {}", request.getUsername());
 
-
         User user = authenticationService.authenticate(request.getUsername(), request.getPassword());
         
         // Generate refresh token and set in HTTP-only cookie (new behavior)
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername());
-        setRefreshTokenCookie(response, refreshToken);
+        cookieUtil.setRefreshTokenCookie(response, refreshToken);
         
         logger.info("Login successful for user: {}", user.getUsername());
         return new ResponseEntity<>(new MessageDto("Login Successful"), HttpStatus.OK);
@@ -112,7 +108,7 @@ public class UserController {
     public ResponseEntity<MessageDto> verify(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
 
-        String username = tokenService.validateAccessToken(token);
+        String username = accessTokenService.validateAccessToken(token);
         return ResponseEntity.ok(new MessageDto("Successfully verified user: " + username));
     }
     
@@ -134,14 +130,15 @@ public class UserController {
      * @return ResponseEntity with new access token and HTTP 200 OK status
      */
     @PostMapping("/refresh")
-    public ResponseEntity<MessageDto> refreshToken(@CookieValue(name = REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
+
+    public ResponseEntity<MessageDto> refreshToken(@CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
         logger.info("Received token refresh request");
         
         // Validate refresh token and get username
         String username = refreshTokenService.validateRefreshToken(refreshToken);
         
         // Generate new access token
-        String newAccessToken = tokenService.generateAccessToken(username);
+        String newAccessToken = accessTokenService.generateAccessToken(username);
         
         logger.info("Token refreshed successfully for user: {}", username);
         return ResponseEntity.ok(new MessageDto(newAccessToken));
@@ -164,20 +161,17 @@ public class UserController {
      */
     @PostMapping("/logout")
     public ResponseEntity<MessageDto> logout(
-            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
-            HttpServletResponse response) {
-        logger.info("Received logout request");
-        
-        if (refreshToken != null) {
-            // Revoke refresh token from Redis
+        @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
+        HttpServletResponse response) {
+            logger.info("Received logout request");
+            
             refreshTokenService.revokeRefreshToken(refreshToken);
-        }
-        
-        // Clear refresh token cookie
-        clearRefreshTokenCookie(response);
-        
-        logger.info("Logout successful");
-        return ResponseEntity.ok(new MessageDto("Refresh Token Revoked and logged out successfully"));
+            
+            // Clear refresh token cookie
+            cookieUtil.clearRefreshTokenCookie(response);
+            
+            logger.info("Logout successful");
+            return ResponseEntity.ok(new MessageDto("Refresh Token Revoked and logged out successfully"));
     }
     
     /**
@@ -194,49 +188,9 @@ public class UserController {
         logger.info("Received current user request");
         
         String token = authHeader.replace("Bearer ", "");
-        String username = tokenService.validateAccessToken(token);
+        String username = accessTokenService.validateAccessToken(token);
         
         logger.info("Current user retrieved: {}", username);
         return ResponseEntity.ok(new MessageDto("Successfully verified user: " + username));
-    }
-    
-    /**
-     * Sets the refresh token in an HTTP-only cookie.
-     * 
-     * Cookie configuration:
-     * - HttpOnly: true (prevents JavaScript access)
-     * - Secure: false (for local development; should be true in production)
-     * - SameSite: Strict (prevents CSRF attacks)
-     * - Path: /users (limits cookie scope)
-     * - MaxAge: 7 days
-     * 
-     * @param response HTTP response
-     * @param refreshToken The refresh token to set
-     */
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setAttribute("SameSite", "Strict");
-        cookie.setPath("/users");
-        cookie.setMaxAge(REFRESH_TOKEN_COOKIE_MAX_AGE);
-        response.addCookie(cookie);
-    }
-    
-    /**
-     * Clears the refresh token cookie.
-     * 
-     * Sets MaxAge to 0 to delete the cookie immediately.
-     * 
-     * @param response HTTP response
-     */
-    private void clearRefreshTokenCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setAttribute("SameSite", "Strict");
-        cookie.setPath("/users");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
     }
 }

@@ -7,6 +7,7 @@ import com.example.casestudy.model.User;
 import com.example.casestudy.service.auth.AuthenticationService;
 import com.example.casestudy.service.token.AccessTokenService;
 import com.example.casestudy.service.token.RefreshTokenService;
+import com.example.casestudy.util.CookieUtil;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +43,9 @@ class UserControllerRefreshTokenTest {
     @Mock
     private RefreshTokenService refreshTokenService;
 
+    @Mock
+    private CookieUtil cookieUtil;
+
     @InjectMocks
     private UserController userController;
 
@@ -68,19 +72,12 @@ class UserControllerRefreshTokenTest {
 
         // Verify response
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        // assertEquals(accessToken, result.getBody().getMessage());
+        assertEquals("Login Successful", result.getBody().getMessage());
 
-        // Verify cookie was set
-        Cookie cookie = response.getCookie("refreshToken");
-        assertNotNull(cookie);
-        assertEquals(refreshToken, cookie.getValue());
-        assertTrue(cookie.isHttpOnly());
-        assertFalse(cookie.getSecure()); // false for local dev
-        assertEquals("/users", cookie.getPath());
-        assertEquals(7 * 24 * 60 * 60, cookie.getMaxAge()); // 7 days
-
+        // Verify cookie utility was called
         verify(authenticationService, times(1)).authenticate("testUser", "Password123!");
         verify(refreshTokenService, times(1)).createRefreshToken("testUser");
+        verify(cookieUtil, times(1)).setRefreshTokenCookie(response, refreshToken);
     }
 
     @Test
@@ -131,13 +128,8 @@ class UserControllerRefreshTokenTest {
         // Verify token was revoked
         verify(refreshTokenService, times(1)).revokeRefreshToken(refreshToken);
 
-        // Verify cookie was cleared
-        Cookie cookie = response.getCookie("refreshToken");
-        assertNotNull(cookie);
-        assertEquals("", cookie.getValue());
-        assertEquals(0, cookie.getMaxAge()); // MaxAge 0 deletes cookie
-        assertTrue(cookie.isHttpOnly());
-        assertEquals("/users", cookie.getPath());
+        // Verify cookie utility was called to clear cookie
+        verify(cookieUtil, times(1)).clearRefreshTokenCookie(response);
     }
 
     @Test
@@ -151,10 +143,8 @@ class UserControllerRefreshTokenTest {
         // Verify revoke was not called
         verify(refreshTokenService, never()).revokeRefreshToken(anyString());
 
-        // Verify cookie was still cleared
-        Cookie cookie = response.getCookie("refreshToken");
-        assertNotNull(cookie);
-        assertEquals(0, cookie.getMaxAge());
+        // Verify cookie utility was still called to clear cookie
+        verify(cookieUtil, times(1)).clearRefreshTokenCookie(response);
     }
 
     @Test
@@ -192,7 +182,7 @@ class UserControllerRefreshTokenTest {
     }
 
     @Test
-    @DisplayName("Should maintain API contract - login still returns JWT in MessageDto")
+    @DisplayName("Should maintain API contract - login still returns success message in MessageDto")
     void testLogin_ApiContractUnchanged() {
         UserRequest request = new UserRequest("testUser", "Password123!");
         User mockUser = new User();
@@ -203,10 +193,11 @@ class UserControllerRefreshTokenTest {
 
         ResponseEntity<MessageDto> result = userController.loginUser(request, response);
 
-        // API contract: JWT access token in MessageDto
+        // API contract: Success message in MessageDto
         assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("Login Successful", result.getBody().getMessage());
         
-        // Refresh token is NOT in response body (only in cookie)
-        assertNotEquals("refresh-token", result.getBody().getMessage());
+        // Verify cookie utility was called
+        verify(cookieUtil, times(1)).setRefreshTokenCookie(eq(response), anyString());
     }
 }
