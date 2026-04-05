@@ -2,7 +2,9 @@ package com.example.casestudy.exception.handler;
 
 import com.example.casestudy.dto.ErrorResponse;
 import com.example.casestudy.exception.AppException;
+import com.example.casestudy.exception.common.RateLimitExceededException;
 
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -129,6 +131,27 @@ public class GlobalExceptionHandler {
         String message = "Refresh token is missing";
         logger.warn("Missing cookie: {}", ex.getCookieName());
         return buildResponseEntity(message, HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Handles rate limit exceeded exceptions from Resilience4j.
+     * 
+     * This handler converts Resilience4j's RequestNotPermitted exception
+     * into our custom RateLimitExceededException, ensuring consistent
+     * error response formatting across the application.
+     * 
+     * Security:
+     * - Generic error message prevents information leakage
+     * - Returns 429 TOO_MANY_REQUESTS to indicate rate limiting
+     * 
+     * @param ex The RequestNotPermitted exception from Resilience4j
+     * @return ResponseEntity with error details and HTTP 429 TOO_MANY_REQUESTS status
+     */
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity<Object> handleRateLimitExceeded(RequestNotPermitted ex) {
+        logger.warn("Rate limit exceeded for rate limiter: {}", ex.getMessage());
+        RateLimitExceededException rateLimitException = new RateLimitExceededException();
+        return buildResponseEntity(rateLimitException.getMessage(), rateLimitException.getStatus());
     }
 
     /**

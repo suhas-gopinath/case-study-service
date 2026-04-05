@@ -151,11 +151,14 @@ class UserControllerRefreshTokenTest {
     @DisplayName("Should return current user information from JWT")
     void testverifyV2_Success() {
         String authHeader = "Bearer jwt-access-token";
+        String refreshToken = "valid-refresh-token";
         String username = "testUser";
 
         when(accessTokenService.validateAccessToken("jwt-access-token")).thenReturn(username);
+        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
+
+        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
 
@@ -163,22 +166,27 @@ class UserControllerRefreshTokenTest {
         assertEquals("Successfully verified user: " + username, result.getBody().getMessage());
 
         verify(accessTokenService, times(1)).validateAccessToken("jwt-access-token");
+        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
     }
 
     @Test
     @DisplayName("Should handle missing Bearer prefix in Authorization header")
     void testverifyV2_WithoutBearerPrefix() {
         String authHeader = "jwt-access-token"; // Missing "Bearer " prefix
+        String refreshToken = "valid-refresh-token";
         String username = "testUser";
 
         when(accessTokenService.validateAccessToken("jwt-access-token")).thenReturn(username);
+        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
+
+        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
 
         // Expecting full message: 'Successfully verified user: testUser'
         assertEquals("Successfully verified user: " + username, result.getBody().getMessage());
+        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
     }
 
     @Test

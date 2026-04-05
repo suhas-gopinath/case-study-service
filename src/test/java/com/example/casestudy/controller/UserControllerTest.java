@@ -196,18 +196,21 @@ class UserControllerTest {
     void testVerifyV2_Success() {
         // Given
         String authHeader = "Bearer jwt-access-token";
+        String refreshToken = "valid-refresh-token";
         String username = "testUser";
 
         when(accessTokenService.validateAccessToken("jwt-access-token")).thenReturn(username);
+        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
         // When
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
+        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
 
         // Then
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
         assertEquals("Successfully verified user: testUser", result.getBody().getMessage());
         verify(accessTokenService, times(1)).validateAccessToken("jwt-access-token");
+        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
     }
 
     @Test
@@ -215,16 +218,19 @@ class UserControllerTest {
     void testVerifyV2_WithoutBearerPrefix() {
         // Given
         String authHeader = "jwt-token-789";
+        String refreshToken = "valid-refresh-token";
         String username = "user3";
 
         when(accessTokenService.validateAccessToken("jwt-token-789")).thenReturn(username);
+        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
         // When
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader);
+        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
 
         // Then
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("Successfully verified user: user3", result.getBody().getMessage());
+        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
     }
 
     // ==================== Token Refresh Tests ====================
