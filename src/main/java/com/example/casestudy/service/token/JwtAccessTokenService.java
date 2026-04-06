@@ -11,26 +11,6 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-/**
- * JWT implementation of the AccessTokenService interface.
- * 
- * This implementation handles JWT token generation and validation directly,
- * providing a clean abstraction layer for future extensibility.
- * 
- * SOLID Principles:
- * - Single Responsibility: Handles only JWT token operations
- * - Open/Closed: Can be extended or replaced without modifying clients
- * - Liskov Substitution: Fully substitutable for AccessTokenService interface
- * - Dependency Inversion: Depends on JwtConfig abstraction
- * 
- * Design Notes:
- * - Contains all JWT logic directly for better encapsulation
- * - Future refresh token logic will be added to a separate RefreshTokenService
- * 
- * Future Extensibility:
- * - When adding refresh tokens, create RefreshTokenService without modifying this class
- * - Multiple token services can coexist for different token types
- */
 @Service
 public class JwtAccessTokenService implements AccessTokenService {
     
@@ -40,12 +20,6 @@ public class JwtAccessTokenService implements AccessTokenService {
         this.jwtConfig = jwtConfig;
     }
     
-    /**
-     * Generates a JWT access token for the specified username.
-     * 
-     * @param username The username to encode in the JWT
-     * @return The generated JWT access token
-     */
     @Override
     public String generateAccessToken(String username) {
         SecretKey key = Keys.hmacShaKeyFor(jwtConfig.getSecretKey().getBytes(StandardCharsets.UTF_8));
@@ -57,13 +31,6 @@ public class JwtAccessTokenService implements AccessTokenService {
                 .compact();
     }
     
-    /**
-     * Validates a JWT access token and extracts the username.
-     * 
-     * @param token The JWT access token to validate
-     * @return The username extracted from the JWT
-     * @throws com.example.casestudy.exception.TokenValidationException if token is invalid
-     */
     @Override
     public String validateAccessToken(String token) {
         try {

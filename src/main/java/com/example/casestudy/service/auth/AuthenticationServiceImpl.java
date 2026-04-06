@@ -16,23 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 
-/**
- * Implementation of AuthenticationService using password-based authentication.
- * 
- * This implementation handles:
- * - User registration with password hashing
- * - User authentication with password verification
- * - Username normalization (lowercase)
- * - Comprehensive logging for security audit
- * 
- * SOLID Principles:
- * - Single Responsibility: Handles only authentication orchestration
- * - Open/Closed: Can be extended or replaced without modifying clients
- * - Liskov Substitution: Fully substitutable for AuthenticationService interface
- * - Dependency Inversion: Depends on abstractions (PasswordService, UserDatabaseService)
- * 
- * All business logic and error handling are preserved from the original UserService.
- */
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
     
@@ -46,20 +29,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.passwordService = passwordService;
     }
     
-    /**
-     * Registers a new user with hashed password.
-     * 
-     * Process:
-     * 1. Normalize username to lowercase
-     * 2. Check for existing username
-     * 3. Generate salt and hash password
-     * 4. Save user to database
-     * 
-     * @param request The user registration request
-     * @return The registered User entity
-     * @throws UserAlreadyExistsException if username already exists
-     * @throws InvalidInputException if password hashing fails
-     */
     @Override
     public User register(UserRequest request) {
         logger.info("Registering new user: {}", request.getUsername());
@@ -92,30 +61,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
     
-    /**
-     * Authenticates a user with username and password.
-     * 
-     * Process:
-     * 1. Fetch user from database
-     * 2. Verify password using PasswordService
-     * 3. Return authenticated user
-     * 
-     * @param username The username to authenticate
-     * @param rawPassword The plain text password
-     * @return The authenticated User entity
-     * @throws InvalidCredentialsException if username not found or password invalid
-     * @throws InvalidInputException if password verification fails
-     */
     @Override
     public User authenticate(String username, String rawPassword) {
         logger.info("Authenticating user: {}", username);
         
         User user = userDatabaseService.findByUsername(username)
-
                 .orElseThrow(() -> new InvalidCredentialsException());
         
         try {
-            // Verify password using PasswordService
             boolean isValid = passwordService.verify(rawPassword, user.getPasswordHash(), user.getSalt());
             
             if (!isValid) {
@@ -127,10 +80,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             logger.info("User authenticated successfully: {}", username);
             return user;
             
-        } catch (InvalidCredentialsException e) {
-            // Re-throw authentication failures
-            throw e;
-        } catch (Exception e) {
+        }catch (Exception e) {
             logger.error("Error during authentication for user {}: {}", username, e.getMessage(), e);
             throw new InvalidInputException("Error verifying credentials. Please try again later.");
         }

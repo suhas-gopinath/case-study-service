@@ -12,44 +12,17 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
-/**
- * PBKDF2 implementation of the PasswordService interface.
- * 
- * This implementation uses PBKDF2WithHmacSHA256 algorithm with:
- * - 100,000 iterations (industry standard for strong security)
- * - 256-bit key length
- * - 16-byte random salt
- * - Base64 encoding for storage
- * 
- * SOLID Principles:
- * - Single Responsibility: Handles only PBKDF2 password hashing logic
- * - Open/Closed: Can be replaced with other implementations (e.g., BCrypt) without modifying clients
- * - Liskov Substitution: Fully substitutable for PasswordService interface
- * 
- * Security Notes:
- * - Uses SecureRandom.getInstanceStrong() for cryptographically secure salt generation
- * - All hashing parameters are preserved from the original implementation
- * - No behavioral changes from the original UserService implementation
- */
 @Service
 public class PBKDF2PasswordService implements PasswordService {
     
     private static final Logger logger = LoggerFactory.getLogger(PBKDF2PasswordService.class);
     
-    // Algorithm configuration - preserved from original UserService
     private static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA256";
     private static final int ITERATIONS = 100000;
     private static final int KEY_LENGTH = 256;
     private static final int SALT_LENGTH = 16;
     
-    /**
-     * Hashes a password using PBKDF2WithHmacSHA256.
-     * 
-     * @param password The plain text password to hash
-     * @param salt The salt bytes to use for hashing
-     * @return The hashed password as a Base64-encoded string
-     * @throws InvalidInputException if hashing fails due to algorithm or key spec issues
-     */
+
     @Override
     public String hash(String password, byte[] salt) {
         try {
@@ -63,15 +36,6 @@ public class PBKDF2PasswordService implements PasswordService {
         }
     }
     
-    /**
-     * Verifies a raw password against a stored hash and salt.
-     * 
-     * @param rawPassword The plain text password to verify
-     * @param storedHash The stored password hash (Base64-encoded)
-     * @param storedSalt The stored salt (Base64-encoded)
-     * @return true if the password matches, false otherwise
-     * @throws InvalidInputException if verification fails due to decoding or hashing issues
-     */
     @Override
     public boolean verify(String rawPassword, String storedHash, String storedSalt) {
         try {
@@ -84,12 +48,6 @@ public class PBKDF2PasswordService implements PasswordService {
         }
     }
     
-    /**
-     * Generates a cryptographically secure random salt.
-     * 
-     * @return A byte array containing the random salt
-     * @throws InvalidInputException if salt generation fails
-     */
     public byte[] generateSalt() {
         try {
             SecureRandom random = SecureRandom.getInstanceStrong();

@@ -12,26 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-/**
- * Implementation of UserDatabaseService with Resilience4j circuit breaker protection.
- * 
- * This service wraps all UserRepository database calls with circuit breaker pattern
- * to prevent cascading failures when the database becomes unavailable or slow.
- * 
- * SOLID Principles:
- * - Single Responsibility: Handles only database operations with resilience
- * - Open/Closed: Can be extended without modifying existing code
- * - Liskov Substitution: Fully substitutable for UserDatabaseService interface
- * - Dependency Inversion: Depends on UserRepository abstraction
- * 
- * Circuit Breaker Configuration:
- * - Name: userDatabase
- * - Fallback methods handle circuit open state
- * - Timeout exceptions wrapped in DatabaseTimeoutException
- * 
- * @see UserDatabaseService
- * @see com.example.casestudy.repository.UserRepository
- */
+
 @Service
 public class UserDatabaseServiceImpl implements UserDatabaseService {
 
@@ -44,19 +25,6 @@ public class UserDatabaseServiceImpl implements UserDatabaseService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Finds a user by username with circuit breaker protection.
-     * 
-     * Circuit Breaker Behavior:
-     * - Monitors database call success/failure rate
-     * - Opens circuit when failure threshold exceeded
-     * - Calls fallback method when circuit is open
-     * 
-     * @param username The username to search for
-     * @return Optional containing the User if found, empty otherwise
-     * @throws DatabaseCircuitOpenException if circuit is open
-     * @throws DatabaseTimeoutException if operation times out
-     */
     @Override
     @CircuitBreaker(name = CIRCUIT_BREAKER_NAME, fallbackMethod = "findByUsernameFallback")
     public Optional<User> findByUsername(String username) {
@@ -71,33 +39,13 @@ public class UserDatabaseServiceImpl implements UserDatabaseService {
         }
     }
 
-    /**
-     * Fallback method for findByUsername when circuit breaker is open.
-     * 
-     * @param username The username parameter from original call
-     * @param throwable The exception that triggered the fallback
-     * @return Never returns, always throws DatabaseCircuitOpenException
-     * @throws DatabaseCircuitOpenException always
-     */
+    @SuppressWarnings("unused")
     private Optional<User> findByUsernameFallback(String username, Throwable throwable) {
         logger.warn("Circuit breaker OPEN for findByUsername. Username: {}. Reason: {}", 
                     username, throwable.getMessage());
         throw new DatabaseCircuitOpenException();
     }
 
-    /**
-     * Saves a user entity to the database with circuit breaker protection.
-     * 
-     * Circuit Breaker Behavior:
-     * - Monitors database call success/failure rate
-     * - Opens circuit when failure threshold exceeded
-     * - Calls fallback method when circuit is open
-     * 
-     * @param user The user entity to save
-     * @return The saved user entity
-     * @throws DatabaseCircuitOpenException if circuit is open
-     * @throws DatabaseTimeoutException if operation times out
-     */
     @Override
     @CircuitBreaker(name = CIRCUIT_BREAKER_NAME, fallbackMethod = "saveFallback")
     public User save(User user) {
@@ -112,14 +60,7 @@ public class UserDatabaseServiceImpl implements UserDatabaseService {
         }
     }
 
-    /**
-     * Fallback method for save when circuit breaker is open.
-     * 
-     * @param user The user parameter from original call
-     * @param throwable The exception that triggered the fallback
-     * @return Never returns, always throws DatabaseCircuitOpenException
-     * @throws DatabaseCircuitOpenException always
-     */
+    @SuppressWarnings("unused")
     private User saveFallback(User user, Throwable throwable) {
         logger.warn("Circuit breaker OPEN for save. Username: {}. Reason: {}", 
                     user.getUsername(), throwable.getMessage());
