@@ -32,7 +32,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleAppException(AppException ex) {
         HttpStatus status = ex.getStatus();
         
-        // Log based on severity (client error vs server error)
         if (status.is4xxClientError()) {
             logger.warn("Client error occurred: {} - Status: {}", ex.getMessage(), status);
         } else if (status.is5xxServerError()) {

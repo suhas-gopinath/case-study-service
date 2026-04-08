@@ -22,7 +22,7 @@ public class RedisRefreshTokenService implements RefreshTokenService {
     
     public RedisRefreshTokenService(
             StringRedisTemplate redisTemplate,
-            @Value("${refresh.token.ttl:604800000}") long refreshTokenTtl) {
+            @Value("${refresh.token.ttl}") long refreshTokenTtl) {
         this.redisTemplate = redisTemplate;
         this.refreshTokenTtl = refreshTokenTtl;
     }
@@ -30,13 +30,11 @@ public class RedisRefreshTokenService implements RefreshTokenService {
     @Override
     public String createRefreshToken(String username) {
         logger.info("Creating refresh token for user: {}", username);
-        
-        // Generate cryptographically secure random token
+
         String token = UUID.randomUUID().toString();
         String key = REFRESH_TOKEN_PREFIX + token;
         
         try {
-            // Store token with username and set TTL
             redisTemplate.opsForValue().set(key, username, refreshTokenTtl, TimeUnit.MILLISECONDS);
             logger.info("Refresh token created successfully for user: {}", username);
             return token;

@@ -2,6 +2,7 @@ package com.example.casestudy.controller;
 
 import com.example.casestudy.dto.MessageDto;
 import com.example.casestudy.dto.UserRequest;
+import com.example.casestudy.exception.AppException;
 import com.example.casestudy.exception.common.InvalidInputException;
 import com.example.casestudy.model.User;
 import com.example.casestudy.service.token.AccessTokenService;
@@ -13,8 +14,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,15 +34,18 @@ public class UserController {
     private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
     private final CookieUtil cookieUtil;
+    private final Executor verificationExecutor;
 
     public UserController(AuthenticationService authenticationService, 
                           AccessTokenService accessTokenService,
                           RefreshTokenService refreshTokenService,
-                          CookieUtil cookieUtil) {
+                          CookieUtil cookieUtil,
+                          @Qualifier("verificationTaskExecutor") Executor verificationExecutor) {
         this.authenticationService = authenticationService;
         this.accessTokenService = accessTokenService;
         this.refreshTokenService = refreshTokenService;
         this.cookieUtil = cookieUtil;
+        this.verificationExecutor = verificationExecutor;
     }
 
     @PostMapping("/register")
@@ -93,11 +101,12 @@ public class UserController {
             return ResponseEntity.ok(new MessageDto("Refresh Token Revoked and logged out successfully"));
     }
     
-    @GetMapping("/verify/v2")
-    public ResponseEntity<MessageDto> verifyV2(
+     @GetMapping("/verify/v2")
+    public CompletableFuture<ResponseEntity<MessageDto>> verifyV2(
             @RequestHeader("Authorization") String authHeader,
             @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
-        logger.info("Received dual verification request (JWT + Refresh Token) - parallel execution");
+        
+        logger.info("Received dual verification request (JWT + Refresh Token) - truly non-blocking");
         
         String token = authHeader.replace("Bearer ", "");
         
@@ -105,18 +114,15 @@ public class UserController {
             String username = accessTokenService.validateAccessToken(token);
             logger.debug("JWT validated for user: {}", username);
             return username;
-        });
+        }, verificationExecutor);
         
         CompletableFuture<String> refreshTokenValidation = CompletableFuture.supplyAsync(() -> {
             String username = refreshTokenService.validateRefreshToken(refreshToken);
             logger.debug("Refresh token validated for user: {}", username);
             return username;
-        });
+        }, verificationExecutor);
         
-        try {
-            String usernameFromJwt = jwtValidation.get();
-            String usernameFromRefreshToken = refreshTokenValidation.get();
-            
+        return jwtValidation.thenCombine(refreshTokenValidation, (usernameFromJwt, usernameFromRefreshToken) -> {
             if (!usernameFromJwt.equals(usernameFromRefreshToken)) {
                 logger.warn("Token mismatch: JWT user '{}' does not match refresh token user '{}'", 
                         usernameFromJwt, usernameFromRefreshToken);
@@ -125,19 +131,17 @@ public class UserController {
             
             logger.info("Dual verification successful for user: {}", usernameFromJwt);
             return ResponseEntity.ok(new MessageDto("Successfully verified user: " + usernameFromJwt));
+        })
+        .orTimeout(3000, TimeUnit.MILLISECONDS)
+        .exceptionally(throwable -> {
+            Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
             
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
+            if (cause instanceof AppException) {
+                throw (AppException) cause;
             }
-            logger.error("Unexpected error during token verification: {}", e.getMessage(), e);
-            throw new InvalidInputException("Token verification failed");
             
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logger.error("Token verification interrupted: {}", e.getMessage(), e);
-            throw new InvalidInputException("Token verification interrupted");
-        }
+            logger.error("Token verification failed: {}", cause.getMessage(), cause);
+            throw new InvalidInputException("Token verification failed");
+        });
     }
 }

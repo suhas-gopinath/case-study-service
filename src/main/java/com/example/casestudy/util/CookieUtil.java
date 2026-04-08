@@ -2,16 +2,21 @@ package com.example.casestudy.util;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CookieUtil {
 
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final int REFRESH_TOKEN_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
+
+    @Value("${refresh.token.ttl}")
+    private long refreshTokenTtlMillis;
 
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        Cookie cookie = createCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_TOKEN_COOKIE_MAX_AGE);
+        int maxAgeSeconds = (int) (refreshTokenTtlMillis / 1000);
+        Cookie cookie = createCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, maxAgeSeconds);
         response.addCookie(cookie);
     }
 

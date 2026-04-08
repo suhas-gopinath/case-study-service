@@ -73,14 +73,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             
             if (!isValid) {
                 logger.warn("Authentication failed — invalid password for user: {}", username);
-
                 throw new InvalidCredentialsException();
             }
             
             logger.info("User authenticated successfully: {}", username);
             return user;
             
-        }catch (Exception e) {
+        } catch (InvalidCredentialsException e) {
+            throw e;
+        } catch (Exception e) {
             logger.error("Error during authentication for user {}: {}", username, e.getMessage(), e);
             throw new InvalidInputException("Error verifying credentials. Please try again later.");
         }
