@@ -13,7 +13,6 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +69,9 @@ public class UserController {
     }
 
     @GetMapping("/verify/v1")
-    public ResponseEntity<MessageDto> verify(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<MessageDto> verify(
+        @RequestHeader("Authorization") String authHeader,
+        @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken) {
         String token = authHeader.replace("Bearer ", "");
 
         String username = accessTokenService.validateAccessToken(token);

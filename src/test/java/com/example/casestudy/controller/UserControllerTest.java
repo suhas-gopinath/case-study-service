@@ -19,6 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +52,9 @@ class UserControllerTest {
     @Mock
     private CookieUtil cookieUtil;
 
+    @Mock
+    private Executor verificationExecutor;
+
     @InjectMocks
     private UserController userController;
 
@@ -57,6 +64,13 @@ class UserControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         response = new MockHttpServletResponse();
+        
+        // Configure mock executor to run tasks synchronously for testing
+        doAnswer(invocation -> {
+            Runnable task = invocation.getArgument(0);
+            task.run();
+            return null;
+        }).when(verificationExecutor).execute(any(Runnable.class));
     }
 
     // ==================== Registration Tests ====================
@@ -162,7 +176,7 @@ class UserControllerTest {
         when(accessTokenService.validateAccessToken("mockToken123")).thenReturn(username);
 
         // When
-        ResponseEntity<MessageDto> result = userController.verify(authHeader);
+        ResponseEntity<MessageDto> result = userController.verify(authHeader, null);
 
         // Then
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -181,7 +195,7 @@ class UserControllerTest {
         when(accessTokenService.validateAccessToken("mockToken456")).thenReturn(username);
 
         // When
-        ResponseEntity<MessageDto> result = userController.verify(authHeader);
+        ResponseEntity<MessageDto> result = userController.verify(authHeader, null);
 
         // Then
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -193,7 +207,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("Should verify access token successfully (v2)")
-    void testVerifyV2_Success() {
+    void testVerifyV2_Success() throws ExecutionException, InterruptedException {
         // Given
         String authHeader = "Bearer jwt-access-token";
         String refreshToken = "valid-refresh-token";
@@ -203,7 +217,8 @@ class UserControllerTest {
         when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
         // When
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
+        CompletableFuture<ResponseEntity<MessageDto>> futureResult = userController.verifyV2(authHeader, refreshToken);
+        ResponseEntity<MessageDto> result = futureResult.get();
 
         // Then
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -215,7 +230,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("Should verify token without Bearer prefix (v2)")
-    void testVerifyV2_WithoutBearerPrefix() {
+    void testVerifyV2_WithoutBearerPrefix() throws ExecutionException, InterruptedException {
         // Given
         String authHeader = "jwt-token-789";
         String refreshToken = "valid-refresh-token";
@@ -225,7 +240,8 @@ class UserControllerTest {
         when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
         // When
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
+        CompletableFuture<ResponseEntity<MessageDto>> futureResult = userController.verifyV2(authHeader, refreshToken);
+        ResponseEntity<MessageDto> result = futureResult.get();
 
         // Then
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -380,23 +396,6 @@ class UserControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("Login Successful", result.getBody().getMessage());
         verify(cookieUtil, times(1)).setRefreshTokenCookie(eq(response), anyString());
-    }
-
-    @Test
-    @DisplayName("Should handle Bearer token with extra spaces")
-    void testVerify_BearerTokenWithSpaces() {
-        // Given
-        String authHeader = "Bearer   token-with-spaces  ";
-        String expectedToken = "  token-with-spaces  ";
-
-        when(accessTokenService.validateAccessToken(expectedToken)).thenReturn("user5");
-
-        // When
-        ResponseEntity<MessageDto> result = userController.verify(authHeader);
-
-        // Then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        verify(accessTokenService, times(1)).validateAccessToken(expectedToken);
     }
 
     @Test

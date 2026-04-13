@@ -19,6 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +50,9 @@ class UserControllerRefreshTokenTest {
     @Mock
     private CookieUtil cookieUtil;
 
+    @Mock
+    private Executor verificationExecutor;
+
     @InjectMocks
     private UserController userController;
 
@@ -55,6 +62,13 @@ class UserControllerRefreshTokenTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         response = new MockHttpServletResponse();
+        
+        // Configure mock executor to run tasks synchronously for testing
+        doAnswer(invocation -> {
+            Runnable task = invocation.getArgument(0);
+            task.run();
+            return null;
+        }).when(verificationExecutor).execute(any(Runnable.class));
     }
 
     @Test
@@ -149,7 +163,8 @@ class UserControllerRefreshTokenTest {
 
     @Test
     @DisplayName("Should return current user information from JWT")
-    void testverifyV2_Success() {
+
+    void testverifyV2_Success() throws ExecutionException, InterruptedException {
         String authHeader = "Bearer jwt-access-token";
         String refreshToken = "valid-refresh-token";
         String username = "testUser";
@@ -158,7 +173,9 @@ class UserControllerRefreshTokenTest {
         when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
 
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
+
+        CompletableFuture<ResponseEntity<MessageDto>> futureResult = userController.verifyV2(authHeader, refreshToken);
+        ResponseEntity<MessageDto> result = futureResult.get();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
 
@@ -171,7 +188,8 @@ class UserControllerRefreshTokenTest {
 
     @Test
     @DisplayName("Should handle missing Bearer prefix in Authorization header")
-    void testverifyV2_WithoutBearerPrefix() {
+
+    void testverifyV2_WithoutBearerPrefix() throws ExecutionException, InterruptedException {
         String authHeader = "jwt-access-token"; // Missing "Bearer " prefix
         String refreshToken = "valid-refresh-token";
         String username = "testUser";
@@ -180,7 +198,9 @@ class UserControllerRefreshTokenTest {
         when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
 
 
-        ResponseEntity<MessageDto> result = userController.verifyV2(authHeader, refreshToken);
+
+        CompletableFuture<ResponseEntity<MessageDto>> futureResult = userController.verifyV2(authHeader, refreshToken);
+        ResponseEntity<MessageDto> result = futureResult.get();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
 

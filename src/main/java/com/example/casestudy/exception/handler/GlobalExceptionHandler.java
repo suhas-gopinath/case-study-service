@@ -2,8 +2,6 @@ package com.example.casestudy.exception.handler;
 
 import com.example.casestudy.dto.ErrorResponse;
 import com.example.casestudy.exception.AppException;
-import com.example.casestudy.exception.common.RateLimitExceededException;
-
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,9 +55,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RequestNotPermitted.class)
     public ResponseEntity<Object> handleRateLimitExceeded(RequestNotPermitted ex) {
+        String message = "Rate limit exceeded. Please try again later.";
         logger.warn("Rate limit exceeded for rate limiter: {}", ex.getMessage());
-        RateLimitExceededException rateLimitException = new RateLimitExceededException();
-        return buildResponseEntity(rateLimitException.getMessage(), rateLimitException.getStatus());
+        return buildResponseEntity(message, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(Exception.class)
