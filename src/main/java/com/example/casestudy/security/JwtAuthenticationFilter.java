@@ -1,10 +1,12 @@
 package com.example.casestudy.security;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -13,61 +15,63 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+
     private final JwtService jwtService;
-    private final JwtAuthenticationEntryPoint entryPoint;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     public JwtAuthenticationFilter(JwtService jwtService,
-                                   JwtAuthenticationEntryPoint entryPoint) {
+                                   JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtService = jwtService;
-        this.entryPoint = entryPoint;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
-
-        String header = request.getHeader("Authorization");
-
-        if (header == null || !header.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token = header.substring(7);
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            String username = jwtService.parseAndExtractUsername(token);
+            String jwt = extractJwtFromRequest(request);
 
-            if (SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                UsernamePasswordAuthenticationToken auth =
+            if (jwt != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                String username = jwtService.parseAndExtractUsername(jwt);
+                UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 username,
-                                null,
                                 null
                         );
 
-                auth.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                logger.debug("Set authentication for user: {}", username);
             }
-
-            filterChain.doFilter(request, response);
-
-        } catch (ExpiredJwtException ex) {
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication: {}", e.getMessage());
             SecurityContextHolder.clearContext();
-            entryPoint.handle(response, "TOKEN_EXPIRED");
-
-        } catch (JwtException | IllegalArgumentException ex) {
-            SecurityContextHolder.clearContext();
-            entryPoint.handle(response, "INVALID_TOKEN");
+            jwtAuthenticationEntryPoint.commence(request, response, 
+                new org.springframework.security.core.AuthenticationException("Invalid token") {});
+            return;
         }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private String extractJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+
+        if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(BEARER_PREFIX.length());
+        }
+
+        return null;
     }
 }
