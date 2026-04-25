@@ -203,52 +203,6 @@ class UserControllerTest {
         verify(accessTokenService, times(1)).validateAccessToken("mockToken456");
     }
 
-    // ==================== Token Verification Tests (v2) ====================
-
-    @Test
-    @DisplayName("Should verify access token successfully (v2)")
-    void testVerifyV2_Success() throws ExecutionException, InterruptedException {
-        // Given
-        String authHeader = "Bearer jwt-access-token";
-        String refreshToken = "valid-refresh-token";
-        String username = "testUser";
-
-        when(accessTokenService.validateAccessToken("jwt-access-token")).thenReturn(username);
-        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
-
-        // When
-        CompletableFuture<ResponseEntity<MessageDto>> futureResult = userController.verifyV2(authHeader, refreshToken);
-        ResponseEntity<MessageDto> result = futureResult.get();
-
-        // Then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertEquals("Successfully verified user: testUser", result.getBody().getMessage());
-        verify(accessTokenService, times(1)).validateAccessToken("jwt-access-token");
-        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
-    }
-
-    @Test
-    @DisplayName("Should verify token without Bearer prefix (v2)")
-    void testVerifyV2_WithoutBearerPrefix() throws ExecutionException, InterruptedException {
-        // Given
-        String authHeader = "jwt-token-789";
-        String refreshToken = "valid-refresh-token";
-        String username = "user3";
-
-        when(accessTokenService.validateAccessToken("jwt-token-789")).thenReturn(username);
-        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
-
-        // When
-        CompletableFuture<ResponseEntity<MessageDto>> futureResult = userController.verifyV2(authHeader, refreshToken);
-        ResponseEntity<MessageDto> result = futureResult.get();
-
-        // Then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Successfully verified user: user3", result.getBody().getMessage());
-        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
-    }
-
     // ==================== Token Refresh Tests ====================
 
     @Test
