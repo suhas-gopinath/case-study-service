@@ -6,7 +6,6 @@ import com.example.casestudy.exception.AppException;
 import com.example.casestudy.exception.common.InvalidInputException;
 import com.example.casestudy.model.User;
 import com.example.casestudy.security.AccessTokenService;
-import com.example.casestudy.security.JwtService;
 import com.example.casestudy.service.token.RefreshTokenService;
 import com.example.casestudy.service.auth.AuthenticationService;
 import com.example.casestudy.util.CookieUtil;
