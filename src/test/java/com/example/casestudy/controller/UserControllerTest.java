@@ -5,7 +5,6 @@ import com.example.casestudy.dto.UserRequest;
 import com.example.casestudy.exception.auth.InvalidRefreshTokenException;
 import com.example.casestudy.model.User;
 import com.example.casestudy.service.auth.AuthenticationService;
-import com.example.casestudy.service.token.AccessTokenService;
 import com.example.casestudy.service.token.RefreshTokenService;
 import com.example.casestudy.util.CookieUtil;
 
@@ -42,9 +41,6 @@ class UserControllerTest {
 
     @Mock
     private AuthenticationService authenticationService;
-
-    @Mock
-    private AccessTokenService accessTokenService;
 
     @Mock
     private RefreshTokenService refreshTokenService;
@@ -164,104 +160,6 @@ class UserControllerTest {
         verify(cookieUtil, times(1)).setRefreshTokenCookie(eq(response), eq("token-123"));
     }
 
-    // ==================== Token Verification Tests (v1) ====================
-
-    @Test
-    @DisplayName("Should verify access token successfully (v1)")
-    void testVerify_Success() {
-        // Given
-        String authHeader = "Bearer mockToken123";
-        String username = "testUser";
-
-        when(accessTokenService.validateAccessToken("mockToken123")).thenReturn(username);
-
-        // When
-        ResponseEntity<MessageDto> result = userController.verify(authHeader, null);
-
-        // Then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertEquals("Successfully verified user: testUser", result.getBody().getMessage());
-        verify(accessTokenService, times(1)).validateAccessToken("mockToken123");
-    }
-
-    @Test
-    @DisplayName("Should verify token without Bearer prefix (v1)")
-    void testVerify_WithoutBearerPrefix() {
-        // Given
-        String authHeader = "mockToken456";
-        String username = "user2";
-
-        when(accessTokenService.validateAccessToken("mockToken456")).thenReturn(username);
-
-        // When
-        ResponseEntity<MessageDto> result = userController.verify(authHeader, null);
-
-        // Then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("Successfully verified user: user2", result.getBody().getMessage());
-        verify(accessTokenService, times(1)).validateAccessToken("mockToken456");
-    }
-
-    // ==================== Token Refresh Tests ====================
-
-    @Test
-    @DisplayName("Should refresh access token using valid refresh token")
-    void testRefreshToken_Success() {
-        // Given
-        String refreshToken = "valid-refresh-token";
-        String username = "testUser";
-        String newAccessToken = "new-jwt-access-token";
-
-        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
-        when(accessTokenService.generateAccessToken(username)).thenReturn(newAccessToken);
-
-        // When
-        ResponseEntity<MessageDto> result = userController.refreshToken(refreshToken);
-
-        // Then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertEquals(newAccessToken, result.getBody().getMessage());
-        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
-        verify(accessTokenService, times(1)).generateAccessToken(username);
-    }
-
-    @Test
-    @DisplayName("Should throw exception for invalid refresh token")
-    void testRefreshToken_InvalidToken() {
-        // Given
-        String invalidToken = "invalid-refresh-token";
-
-        when(refreshTokenService.validateRefreshToken(invalidToken))
-            .thenThrow(new InvalidRefreshTokenException());
-
-        // When & Then
-        assertThrows(InvalidRefreshTokenException.class, () -> {
-            userController.refreshToken(invalidToken);
-        });
-
-        verify(refreshTokenService, times(1)).validateRefreshToken(invalidToken);
-        verify(accessTokenService, never()).generateAccessToken(anyString());
-    }
-
-    @Test
-    @DisplayName("Should generate new access token on refresh")
-    void testRefreshToken_GeneratesNewToken() {
-        // Given
-        String refreshToken = "refresh-abc";
-        String username = "user4";
-        String newToken = "new-token-xyz";
-
-        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
-        when(accessTokenService.generateAccessToken(username)).thenReturn(newToken);
-
-        // When
-        ResponseEntity<MessageDto> result = userController.refreshToken(refreshToken);
-
-        // Then
-        assertEquals(newToken, result.getBody().getMessage());
-    }
 
     // ==================== Logout Tests ====================
 

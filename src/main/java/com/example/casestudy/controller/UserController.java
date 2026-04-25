@@ -5,7 +5,8 @@ import com.example.casestudy.dto.UserRequest;
 import com.example.casestudy.exception.AppException;
 import com.example.casestudy.exception.common.InvalidInputException;
 import com.example.casestudy.model.User;
-import com.example.casestudy.service.token.AccessTokenService;
+import com.example.casestudy.security.AccessTokenService;
+import com.example.casestudy.security.JwtService;
 import com.example.casestudy.service.token.RefreshTokenService;
 import com.example.casestudy.service.auth.AuthenticationService;
 import com.example.casestudy.util.CookieUtil;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -61,12 +63,8 @@ public class UserController {
     }
 
     @GetMapping("/verify/v1")
-    public ResponseEntity<MessageDto> verify(
-        @RequestHeader("Authorization") String authHeader,
-        @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken) {
-        String token = authHeader.replace("Bearer ", "");
-
-        String username = accessTokenService.validateAccessToken(token);
+    public ResponseEntity<MessageDto> verify(Authentication authentication) {
+        String username = authentication.getName();
         return ResponseEntity.ok(new MessageDto("Successfully verified user: " + username));
     }
 
@@ -75,7 +73,7 @@ public class UserController {
         logger.info("Received token refresh request");
         
         String username = refreshTokenService.validateRefreshToken(refreshToken);
-        String newAccessToken = accessTokenService.generateAccessToken(username);
+        String newAccessToken = accessTokenService.generateToken(username);
         
         logger.info("Token refreshed successfully for user: {}", username);
         return ResponseEntity.ok(new MessageDto(newAccessToken));
@@ -96,14 +94,13 @@ public class UserController {
     
      @GetMapping("/verify/v2")
     public ResponseEntity<MessageDto> verifyV2(
-            @RequestHeader("Authorization") String authHeader,
+            Authentication authentication,
             @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
         
-        logger.info("Received dual verification request (JWT + Refresh Token) - blocking execution");       
-        String token = authHeader.replace("Bearer ", "");
+        logger.info("Received dual verification request (JWT + Refresh Token)");       
         
         try {
-            String usernameFromJwt = accessTokenService.validateAccessToken(token);
+            String usernameFromJwt = authentication.getName();
             logger.debug("JWT validated for user: {}", usernameFromJwt);
             
             String usernameFromRefreshToken = refreshTokenService.validateRefreshToken(refreshToken);

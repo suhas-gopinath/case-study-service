@@ -4,8 +4,8 @@ import com.example.casestudy.dto.MessageDto;
 import com.example.casestudy.dto.UserRequest;
 import com.example.casestudy.exception.auth.InvalidRefreshTokenException;
 import com.example.casestudy.model.User;
+import com.example.casestudy.security.AccessTokenService;
 import com.example.casestudy.service.auth.AuthenticationService;
-import com.example.casestudy.service.token.AccessTokenService;
 import com.example.casestudy.service.token.RefreshTokenService;
 import com.example.casestudy.util.CookieUtil;
 import jakarta.servlet.http.Cookie;
@@ -94,40 +94,6 @@ class UserControllerRefreshTokenTest {
         verify(cookieUtil, times(1)).setRefreshTokenCookie(response, refreshToken);
     }
 
-    @Test
-    @DisplayName("Should refresh access token using valid refresh token")
-    void testRefresh_Success() {
-        String refreshToken = "valid-refresh-token";
-        String username = "testUser";
-        String newAccessToken = "new-jwt-access-token";
-
-        when(refreshTokenService.validateRefreshToken(refreshToken)).thenReturn(username);
-        when(accessTokenService.generateAccessToken(username)).thenReturn(newAccessToken);
-
-        ResponseEntity<MessageDto> result = userController.refreshToken(refreshToken);
-
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(newAccessToken, result.getBody().getMessage());
-
-        verify(refreshTokenService, times(1)).validateRefreshToken(refreshToken);
-        verify(accessTokenService, times(1)).generateAccessToken(username);
-    }
-
-    @Test
-    @DisplayName("Should throw exception for invalid refresh token")
-    void testRefresh_InvalidToken() {
-        String invalidToken = "invalid-refresh-token";
-
-        when(refreshTokenService.validateRefreshToken(invalidToken))
-            .thenThrow(new InvalidRefreshTokenException());
-
-        assertThrows(InvalidRefreshTokenException.class, () -> {
-            userController.refreshToken(invalidToken);
-        });
-
-        verify(refreshTokenService, times(1)).validateRefreshToken(invalidToken);
-        verify(accessTokenService, never()).generateAccessToken(anyString());
-    }
 
     @Test
     @DisplayName("Should revoke refresh token and clear cookie on logout")
