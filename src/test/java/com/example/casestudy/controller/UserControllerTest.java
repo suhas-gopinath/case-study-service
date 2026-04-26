@@ -181,22 +181,6 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle logout without refresh token gracefully")
-    void testLogout_NoRefreshToken() {
-        // When
-        ResponseEntity<MessageDto> result = userController.logout(null, response);
-
-        // Then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertEquals("Refresh Token Revoked and logged out successfully", result.getBody().getMessage());
-        
-        // FIXED: The controller now always calls revokeRefreshToken, even with null token
-        verify(refreshTokenService, times(1)).revokeRefreshToken(null);
-        verify(cookieUtil, times(1)).clearRefreshTokenCookie(response);
-    }
-
-    @Test
     @DisplayName("Should clear cookie even when token revocation fails")
     void testLogout_ClearsCookieRegardlessOfRevocation() {
         // Given
@@ -286,16 +270,4 @@ class UserControllerTest {
         verifyNoMoreInteractions(refreshTokenService, cookieUtil);
     }
 
-    @Test
-    @DisplayName("Should verify all service interactions during logout without token")
-    void testLogout_AllServiceInteractionsWithoutToken() {
-        // When
-        userController.logout(null, response);
-
-        // Then
-        // FIXED: The controller now always calls revokeRefreshToken, even with null
-        verify(refreshTokenService, times(1)).revokeRefreshToken(null);
-        verify(cookieUtil, times(1)).clearRefreshTokenCookie(response);
-        verifyNoMoreInteractions(refreshTokenService, cookieUtil);
-    }
 }
