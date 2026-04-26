@@ -48,6 +48,7 @@ public class PBKDF2PasswordService implements PasswordService {
         }
     }
     
+    @Override
     public byte[] generateSalt() {
         try {
             SecureRandom random = SecureRandom.getInstanceStrong();

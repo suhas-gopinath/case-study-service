@@ -10,6 +10,8 @@ import com.example.casestudy.exception.user.UserAlreadyExistsException;
 import com.example.casestudy.model.User;
 import com.example.casestudy.service.database.UserDatabaseService;
 import com.example.casestudy.service.password.PBKDF2PasswordService;
+import com.example.casestudy.service.password.PasswordService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
     
     private final UserDatabaseService userDatabaseService;
-    private final PBKDF2PasswordService passwordService;
+    private final PasswordService passwordService;
     
     public AuthenticationServiceImpl(UserDatabaseService userDatabaseService, PBKDF2PasswordService passwordService) {
         this.userDatabaseService = userDatabaseService;
