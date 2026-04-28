@@ -1,0 +1,12 @@
+redis / postgres - refresh token 
+retry vs circuit breaker
+stateful vs stateless auth
+rate limting - interceptor vs custom annotation, ip address vs jwt username
+
+
+todo
+@ConfigurationProperties(prefix = "jwt")
+rate limting 
+retry 
+audit logging
+spring config server
