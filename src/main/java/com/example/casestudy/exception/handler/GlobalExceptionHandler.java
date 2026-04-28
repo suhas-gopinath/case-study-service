@@ -2,7 +2,6 @@ package com.example.casestudy.exception.handler;
 
 import com.example.casestudy.dto.ErrorResponse;
 import com.example.casestudy.exception.AppException;
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -51,13 +50,6 @@ public class GlobalExceptionHandler {
         String message = "Refresh token is missing";
         logger.warn("Missing cookie: {}", ex.getCookieName());
         return buildResponseEntity(message, HttpStatus.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler(RequestNotPermitted.class)
-    public ResponseEntity<Object> handleRateLimitExceeded(RequestNotPermitted ex) {
-        String message = "Rate limit exceeded. Please try again later.";
-        logger.warn("Rate limit exceeded for rate limiter: {}", ex.getMessage());
-        return buildResponseEntity(message, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(Exception.class)

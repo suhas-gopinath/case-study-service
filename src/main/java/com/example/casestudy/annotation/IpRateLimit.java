@@ -5,9 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.METHOD)
+@Target(ElementType.TYPE) // Changed to TYPE for class-level annotation
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IpRateLimit {
-    int limitForPeriod() default 5;
+    int limitForPeriod() default 50; // Higher default for controller-level
     long limitRefreshPeriodSeconds() default 60;
 }

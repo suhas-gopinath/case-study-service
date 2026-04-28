@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
+@IpRateLimit(limitForPeriod = 10, limitRefreshPeriodSeconds = 60)
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -40,16 +41,14 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    @IpRateLimit(limitForPeriod = 3, limitRefreshPeriodSeconds = 3600)
     public ResponseEntity<MessageDto> registerUser(@Valid @RequestBody UserRequest request) {
         logger.info("Received registration request for username: {}", request.getUsername());
 
-        authenticationService.register(request);
+        authenticationService.register(request.getUsername(), request.getPassword());
         return new ResponseEntity<>(new MessageDto("User Registered Successfully"), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    @IpRateLimit(limitForPeriod = 5, limitRefreshPeriodSeconds = 300)
     public ResponseEntity<MessageDto> loginUser(@RequestBody UserRequest request, HttpServletResponse response) {
         logger.info("Received login request for username: {}", request.getUsername());
 
@@ -63,14 +62,12 @@ public class UserController {
     }
 
     @GetMapping("/verify/v1")
-    @IpRateLimit(limitForPeriod = 10, limitRefreshPeriodSeconds = 60)
     public ResponseEntity<MessageDto> verify(Authentication authentication) {
         String username = authentication.getName();
         return ResponseEntity.ok(new MessageDto("Successfully verified user: " + username));
     }
 
     @PostMapping("/refresh")
-    @IpRateLimit(limitForPeriod = 5, limitRefreshPeriodSeconds = 60)
     public ResponseEntity<MessageDto> refreshToken(@CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
         logger.info("Received token refresh request");
         
@@ -82,7 +79,6 @@ public class UserController {
     }
     
     @PostMapping("/logout")
-    @IpRateLimit(limitForPeriod = 5, limitRefreshPeriodSeconds = 60)
     public ResponseEntity<MessageDto> logout(
         @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
         HttpServletResponse response) {
@@ -98,7 +94,6 @@ public class UserController {
     }
     
      @GetMapping("/verify/v2")
-     @IpRateLimit(limitForPeriod = 10, limitRefreshPeriodSeconds = 60)
     public ResponseEntity<MessageDto> verifyV2(
             Authentication authentication,
             @CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {

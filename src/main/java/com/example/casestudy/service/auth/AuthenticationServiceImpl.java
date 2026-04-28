@@ -32,24 +32,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
     
     @Override
-    public User register(UserRequest request) {
-        logger.info("Registering new user: {}", request.getUsername());
-        String username = request.getUsername().toLowerCase();
+    public User register(String username, String rawPassword) {
+
+        String normalizedUsername = username.toLowerCase();
+        logger.info("Registering new user: {}", normalizedUsername);
         
         if (userDatabaseService.findByUsername(username).isPresent()) {
-            logger.warn("User registration failed. username already exists: {}", request.getUsername());
-            throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
+            logger.warn("User registration failed. username already exists: {}", normalizedUsername);
+            throw new UserAlreadyExistsException("Username already exists: " + normalizedUsername);
         }
         
         try {
             // Generate salt and hash password using PasswordService
             byte[] saltBytes = passwordService.generateSalt();
             String saltString = Base64.getEncoder().encodeToString(saltBytes);
-            String hashedPassword = passwordService.hash(request.getPassword(), saltBytes);
+            String hashedPassword = passwordService.hash(rawPassword, saltBytes);
             
             // Create and save new user
             User newUser = new User();
-            newUser.setUsername(request.getUsername());
+            newUser.setUsername(username);
             newUser.setPasswordHash(hashedPassword);
             newUser.setSalt(saltString);
             
@@ -58,7 +59,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return savedUser;
             
         } catch (Exception e) {
-            logger.error("Error during password hashing for user {}: {}", request.getUsername(), e.getMessage(), e);
+            logger.error("Error during password hashing for user {}: {}", username, e.getMessage(), e);
             throw new InvalidInputException("Error processing registration");
         }
     }

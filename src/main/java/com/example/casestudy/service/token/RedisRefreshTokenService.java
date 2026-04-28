@@ -28,7 +28,7 @@ public class RedisRefreshTokenService implements RefreshTokenService {
     }
     
     @Override
-    public String createRefreshToken(String username) {
+    public String createRefreshToken( String username) {
         logger.info("Creating refresh token for user: {}", username);
 
         String token = UUID.randomUUID().toString();

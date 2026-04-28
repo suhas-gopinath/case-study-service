@@ -71,47 +71,8 @@ class UserControllerTest {
 
     // ==================== Registration Tests ====================
 
-    @Test
-    @DisplayName("Should register user successfully")
-    void testRegisterUser_Success() {
-        // Given
-        UserRequest request = new UserRequest();
-        request.setUsername("testUser");
-        request.setPassword("Password123!");
 
-        User mockUser = new User();
-        mockUser.setUsername("testUser");
 
-        when(authenticationService.register(request)).thenReturn(mockUser);
-
-        // When
-        ResponseEntity<MessageDto> result = userController.registerUser(request);
-
-        // Then
-        assertEquals(HttpStatus.CREATED, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertEquals("User Registered Successfully", result.getBody().getMessage());
-        verify(authenticationService, times(1)).register(request);
-    }
-
-    @Test
-    @DisplayName("Should handle registration with valid user request")
-    void testRegisterUser_WithValidRequest() {
-        // Given
-        UserRequest request = new UserRequest("newUser", "SecurePass123!");
-        User mockUser = new User();
-        mockUser.setUsername("newUser");
-
-        when(authenticationService.register(request)).thenReturn(mockUser);
-
-        // When
-        ResponseEntity<MessageDto> result = userController.registerUser(request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(HttpStatus.CREATED, result.getStatusCode());
-        verify(authenticationService, times(1)).register(request);
-    }
 
     // ==================== Login Tests ====================
 

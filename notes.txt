@@ -6,7 +6,12 @@ rate limting - interceptor vs custom annotation, ip address vs jwt username
 
 todo
 @ConfigurationProperties(prefix = "jwt")
-rate limting 
 retry 
+too many exceptions
 audit logging
-spring config server
+accesstoken dto
+
+SECURITY ALERT - Request did not come from NGINX proxy. 
+Remote address: 172.18.0.1, X-Real-IP: 127.0.0.1, X-Forwarded-For: 127.0.0.1
+2026-04-28T03:11:02.595Z  WARN 1 --- [CaseStudy] [nio-8080-exec-1] c.e.c.e.handler.GlobalExceptionHandler   : 
+Client error occurred: Request must come through NGINX proxy - Status: 400 BAD_REQUEST

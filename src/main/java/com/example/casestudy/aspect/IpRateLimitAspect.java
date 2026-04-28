@@ -16,8 +16,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * AOP Aspect for IP-based rate limiting.
- * Intercepts methods annotated with @IpRateLimit.
+ * AOP Aspect for IP-based rate limiting at controller level.
+ * Intercepts all methods in controllers annotated with @IpRateLimit.
  */
 @Aspect
 @Component
@@ -35,17 +35,21 @@ public class IpRateLimitAspect {
         this.ipAddressUtil = ipAddressUtil;
     }
 
-    @Around("@annotation(ipRateLimit)")
-    public Object applyIpRateLimit(ProceedingJoinPoint joinPoint, IpRateLimit ipRateLimit) throws Throwable {
+    @Around("@within(ipRateLimit) && within(@org.springframework.web.bind.annotation.RestController *)")
+    public Object applyGlobalIpRateLimit(ProceedingJoinPoint joinPoint, IpRateLimit ipRateLimit) throws Throwable {
         String ipAddress = extractIpAddress();
+        String controllerName = joinPoint.getTarget().getClass().getSimpleName();
 
         int limitForPeriod = ipRateLimit.limitForPeriod();
         long limitRefreshPeriodSeconds = ipRateLimit.limitRefreshPeriodSeconds();
 
-        if (!rateLimiterService.isRequestPermitted(ipAddress, limitForPeriod, limitRefreshPeriodSeconds)) {
-            long timeUntilReset = rateLimiterService.getTimeUntilReset(ipAddress);
+        String rateLimitKey = controllerName + ":" + ipAddress;
 
-            logger.warn("Rate limit exceeded for IP {} (reset in {}s)", ipAddress, timeUntilReset);
+        if (!rateLimiterService.isRequestPermitted(rateLimitKey, limitForPeriod, limitRefreshPeriodSeconds)) {
+            long timeUntilReset = rateLimiterService.getTimeUntilReset(rateLimitKey);
+
+            logger.warn("Global rate limit exceeded for controller {} and IP {} (reset in {}s)", 
+                    controllerName, ipAddress, timeUntilReset);
             throw new RateLimitExceededException("Rate limit exceeded for IP: " + ipAddress);
         }
 

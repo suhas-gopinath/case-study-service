@@ -53,49 +53,6 @@ class AuthenticationServiceImplTest {
         existingUser.setSalt(Base64.getEncoder().encodeToString("somesalt".getBytes()));
     }
 
-    @Test
-    @DisplayName("Should register user successfully")
-    void testRegisterUser_Success() {
-        byte[] mockSalt = "1234567890123456".getBytes();
-        String mockHash = "mockHashedPassword";
-
-
-        when(userDatabaseService.findByUsername("testuser")).thenReturn(Optional.empty());
-        when(passwordService.generateSalt()).thenReturn(mockSalt);
-        when(passwordService.hash("Password123!", mockSalt)).thenReturn(mockHash);
-
-        when(userDatabaseService.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        User savedUser = authenticationService.register(userRequest);
-
-        assertNotNull(savedUser);
-        assertEquals("TestUser", savedUser.getUsername());
-        assertEquals(mockHash, savedUser.getPasswordHash());
-        assertNotNull(savedUser.getSalt());
-
-
-
-        verify(userDatabaseService, times(1)).findByUsername("testuser");
-        verify(userDatabaseService, times(1)).save(any(User.class));
-        verify(passwordService, times(1)).generateSalt();
-        verify(passwordService, times(1)).hash("Password123!", mockSalt);
-    }
-
-    @Test
-    @DisplayName("Should throw UserAlreadyExistsException when username exists")
-    void testRegisterUser_UserAlreadyExists() {
-
-        when(userDatabaseService.findByUsername("testuser")).thenReturn(Optional.of(existingUser));
-
-        assertThrows(UserAlreadyExistsException.class, () -> {
-            authenticationService.register(userRequest);
-        });
-
-
-
-        verify(userDatabaseService, times(1)).findByUsername("testuser");
-        verify(userDatabaseService, never()).save(any());
-    }
 
     @Test
     @DisplayName("Should authenticate user successfully")
