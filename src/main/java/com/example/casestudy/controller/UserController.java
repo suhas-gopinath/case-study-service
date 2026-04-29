@@ -1,6 +1,7 @@
 package com.example.casestudy.controller;
 
 import com.example.casestudy.annotation.IpRateLimit;
+import com.example.casestudy.dto.AccessTokenDto;
 import com.example.casestudy.dto.MessageDto;
 import com.example.casestudy.dto.UserRequest;
 import com.example.casestudy.exception.AppException;
@@ -68,14 +69,14 @@ public class UserController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<MessageDto> refreshToken(@CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
+    public ResponseEntity<AccessTokenDto> refreshToken(@CookieValue(name = CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken) {
         logger.info("Received token refresh request");
         
         String username = refreshTokenService.validateRefreshToken(refreshToken);
         String newAccessToken = accessTokenService.generateToken(username);
         
         logger.info("Token refreshed successfully for user: {}", username);
-        return ResponseEntity.ok(new MessageDto(newAccessToken));
+        return ResponseEntity.ok(new AccessTokenDto(newAccessToken));
     }
     
     @PostMapping("/logout")
